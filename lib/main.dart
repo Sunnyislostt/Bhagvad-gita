@@ -6,10 +6,12 @@ import 'screens/feed_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Make status bar transparent for full-screen immersive experience
+  SystemChrome.setSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
 
   runApp(const BhagvadGitaApp());

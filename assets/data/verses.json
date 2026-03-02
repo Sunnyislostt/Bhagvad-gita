@@ -7,8 +7,12 @@
     "transliteration": "karmaṇy-evādhikāras te mā phaleṣhu kadāchana\nmā karma-phala-hetur bhūr mā te saṅgo ’stvakarmani",
     "translation_english": "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself to be the cause of the results of your activities, nor be attached to inaction.",
     "deep_dive_text": "This verse establishes the core principle of Karma Yoga. It advises acting without attachment to the outcome. By focusing on the effort rather than the result, one attains peace and excellence. It is freedom from the anxiety of expectations.",
-    "background_hex_color": "#FFECD2", 
-    "tags": ["duty", "action", "detachment"]
+    "background_hex_color": "#FFECD2",
+    "tags": [
+      "duty",
+      "action",
+      "detachment"
+    ]
   },
   {
     "id": "BG_02_14",
@@ -18,8 +22,12 @@
     "transliteration": "mātrā-sparśhās tu kaunteya śhītoṣhṇa-sukha-duḥkha-dāḥ\nāgamāpāyino ’nityās tāns titikṣhasva bhārata",
     "translation_english": "O son of Kunti, the nonpermanent appearance of happiness and distress, and their disappearance in due course, are like the appearance and disappearance of winter and summer seasons.",
     "deep_dive_text": "Sensory inputs are temporary. They produce dualities like joy and sorrow, heat and cold. Because they come and go, one should learn to tolerate them without being disturbed.",
-    "background_hex_color": "#D4FC79", 
-    "tags": ["tolerance", "senses", "impermanence"]
+    "background_hex_color": "#D4FC79",
+    "tags": [
+      "tolerance",
+      "senses",
+      "impermanence"
+    ]
   },
   {
     "id": "BG_06_05",
@@ -29,7 +37,56 @@
     "transliteration": "uddhared ātmanātmānaṁ nātmānam avasādayet\nātmaiva hyātmano bandhur ātmaiva ripur ātmanaḥ",
     "translation_english": "Elevate yourself through the power of your mind, and not degrade yourself, for the mind can be the friend and also the enemy of the self.",
     "deep_dive_text": "We are our own saviors. A controlled mind acts as our greatest ally in our spiritual and worldly endeavors. Conversely, an uncontrolled mind becomes our worst enemy.",
-    "background_hex_color": "#84FAB0", 
-    "tags": ["mind", "self-control", "elevation"]
+    "background_hex_color": "#84FAB0",
+    "tags": [
+      "mind",
+      "self-control",
+      "elevation"
+    ]
+  },
+  {
+    "id": "BG_02_20",
+    "chapter": 2,
+    "verse_number": 20,
+    "original_script": "न जायते म्रियते वा कदाचि\nन्नायं भूत्वा भविता वा न भूयः।\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे।।",
+    "transliteration": "na jāyate mriyate vā kadāchin\nnāyaṁ bhūtvā bhavitā vā na bhūyaḥ\najo nityaḥ śhāśhvato ’yaṁ purāṇo\nna hanyate hanyamāne śharīre",
+    "translation_english": "The soul is neither born, nor does it ever die; nor having once existed, does it ever cease to be. The soul is without birth, eternal, immortal, and ageless. It is not destroyed when the body is destroyed.",
+    "deep_dive_text": "This verse describes the eternal nature of the soul. It asserts that our true self is beyond physical birth and death, encouraging fearlessness.",
+    "background_hex_color": "#FFD194",
+    "tags": [
+      "soul",
+      "eternal",
+      "immortality"
+    ]
+  },
+  {
+    "id": "BG_18_66",
+    "chapter": 18,
+    "verse_number": 66,
+    "original_script": "सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज।\nअहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः।।",
+    "transliteration": "sarva-dharmān parityajya mām ekaṁ śharaṇaṁ vraja\nahaṁ tvāṁ sarva-pāpebhyo mokṣhayiṣhyāmi mā śhuchaḥ",
+    "translation_english": "Abandon all varieties of dharmas and simply surrender unto Me alone. I shall liberate you from all sinful reactions; do not fear.",
+    "deep_dive_text": "This is the essence of Bhakti Yoga. Complete surrender to the Divine brings ultimate peace and liberation from all karmic burdens.",
+    "background_hex_color": "#A18CD1",
+    "tags": [
+      "surrender",
+      "liberation",
+      "peace"
+    ]
+  },
+  {
+    "id": "BG_12_15",
+    "chapter": 12,
+    "verse_number": 15,
+    "original_script": "यस्मान्नोद्विजते लोको लोकान्नोद्विजते च यः।\nहर्षामर्षभयोद्वेगैर्मुक्तो यः स च मे प्रियः।।",
+    "transliteration": "yasmān nodvijate loko lokān nodvijate cha yaḥ\nharṣhāmarṣha-bhayodvegair mukto yaḥ sa cha me priyaḥ",
+    "translation_english": "Those who are not a source of annoyance to anyone and who in turn are not agitated by anyone, who are equal in pleasure and pain, and free from fear and anxiety, completely such devotees are very dear to Me.",
+    "deep_dive_text": "A true devotee maintains equanimity. By transcending typical emotional reactivity, they achieve a state of lasting peace and exhibit kindness toward all beings.",
+    "background_hex_color": "#FF9A9E",
+    "tags": [
+      "devotion",
+      "equanimity",
+      "peace"
+    ]
   }
 ]

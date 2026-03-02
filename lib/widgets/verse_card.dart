@@ -5,8 +5,21 @@ import 'glass_container.dart';
 
 class VerseCard extends StatelessWidget {
   final Verse verse;
+  final bool isEnglish;
+  final bool isSaved;
+  final VoidCallback onSave;
+  final VoidCallback onShare;
+  final bool hideUI;
 
-  const VerseCard({super.key, required this.verse});
+  const VerseCard({
+    super.key,
+    required this.verse,
+    this.isEnglish = false,
+    this.isSaved = false,
+    required this.onSave,
+    required this.onShare,
+    this.hideUI = false,
+  });
 
   void _showVerseDetails(BuildContext context) {
     showModalBottomSheet(
@@ -90,16 +103,6 @@ class VerseCard extends StatelessWidget {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: verse.tags.map((tag) => Chip(
-                      label: Text('#$tag', style: const TextStyle(color: Colors.white)),
-                      backgroundColor: Colors.white.withValues(alpha: 0.1),
-                      side: BorderSide.none,
-                    )).toList(),
-                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -136,51 +139,54 @@ class VerseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    verse.originalScript,
+                    isEnglish ? verse.translationEnglish : verse.originalScript,
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.martel(
-                      color: Colors.white,
-                      fontSize: 28,
-                      height: 1.8,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: isEnglish
+                        ? GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 22,
+                            height: 1.6,
+                            fontWeight: FontWeight.w500,
+                          )
+                        : GoogleFonts.martel(
+                            color: Colors.white,
+                            fontSize: 28,
+                            height: 1.8,
+                            fontWeight: FontWeight.w700,
+                          ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // Right side action buttons
-          Positioned(
-            right: 0,
-            bottom: 60,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _ActionButton(
-                  icon: Icons.info_outline,
-                  label: "Meaning",
-                  onTap: () => _showVerseDetails(context),
-                ),
-                const SizedBox(height: 24),
-                _ActionButton(
-                  icon: Icons.bookmark_border,
-                  label: "Save",
-                  onTap: () {
-                    // Logic for bookmarking
-                  },
-                ),
-                const SizedBox(height: 24),
-                _ActionButton(
-                  icon: Icons.share_outlined,
-                  label: "Share",
-                  onTap: () {
-                    // Logic for sharing
-                  },
-                ),
-              ],
+          // Bottom action buttons
+          if (!hideUI)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _ActionButton(
+                    icon: Icons.info_outline,
+                    label: "Meaning",
+                    onTap: () => _showVerseDetails(context),
+                  ),
+                  _ActionButton(
+                    icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    label: "Save",
+                    onTap: onSave,
+                  ),
+                  _ActionButton(
+                    icon: Icons.share_outlined,
+                    label: "Share",
+                    onTap: onShare,
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
