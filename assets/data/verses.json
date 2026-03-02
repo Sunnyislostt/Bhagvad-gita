@@ -1,0 +1,35 @@
+[
+  {
+    "id": "BG_02_47",
+    "chapter": 2,
+    "verse_number": 47,
+    "original_script": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि।।",
+    "transliteration": "karmaṇy-evādhikāras te mā phaleṣhu kadāchana\nmā karma-phala-hetur bhūr mā te saṅgo ’stvakarmani",
+    "translation_english": "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself to be the cause of the results of your activities, nor be attached to inaction.",
+    "deep_dive_text": "This verse establishes the core principle of Karma Yoga. It advises acting without attachment to the outcome. By focusing on the effort rather than the result, one attains peace and excellence. It is freedom from the anxiety of expectations.",
+    "background_hex_color": "#FFECD2", 
+    "tags": ["duty", "action", "detachment"]
+  },
+  {
+    "id": "BG_02_14",
+    "chapter": 2,
+    "verse_number": 14,
+    "original_script": "मात्रास्पर्शास्तु कौन्तेय शीतोष्णसुखदुःखदाः।\nआगमापायिनोऽनित्यास्तांस्तितिक्षस्व भारत।।",
+    "transliteration": "mātrā-sparśhās tu kaunteya śhītoṣhṇa-sukha-duḥkha-dāḥ\nāgamāpāyino ’nityās tāns titikṣhasva bhārata",
+    "translation_english": "O son of Kunti, the nonpermanent appearance of happiness and distress, and their disappearance in due course, are like the appearance and disappearance of winter and summer seasons.",
+    "deep_dive_text": "Sensory inputs are temporary. They produce dualities like joy and sorrow, heat and cold. Because they come and go, one should learn to tolerate them without being disturbed.",
+    "background_hex_color": "#D4FC79", 
+    "tags": ["tolerance", "senses", "impermanence"]
+  },
+  {
+    "id": "BG_06_05",
+    "chapter": 6,
+    "verse_number": 5,
+    "original_script": "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्।\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः।।",
+    "transliteration": "uddhared ātmanātmānaṁ nātmānam avasādayet\nātmaiva hyātmano bandhur ātmaiva ripur ātmanaḥ",
+    "translation_english": "Elevate yourself through the power of your mind, and not degrade yourself, for the mind can be the friend and also the enemy of the self.",
+    "deep_dive_text": "We are our own saviors. A controlled mind acts as our greatest ally in our spiritual and worldly endeavors. Conversely, an uncontrolled mind becomes our worst enemy.",
+    "background_hex_color": "#84FAB0", 
+    "tags": ["mind", "self-control", "elevation"]
+  }
+]
