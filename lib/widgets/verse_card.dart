@@ -21,16 +21,16 @@ class VerseCard extends StatelessWidget {
     this.hideUI = false,
   });
 
-  void _showVerseDetails(BuildContext context) {
+  static void showDetailsBottomSheet(BuildContext context, Verse verse) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Transparent to show glass effect
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
+          initialChildSize: 0.75,
           minChildSize: 0.4,
-          maxChildSize: 0.9,
+          maxChildSize: 0.95,
           builder: (context, scrollController) {
             return GlassContainer(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -51,56 +51,92 @@ class VerseCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    "Chapter ${verse.chapter}, Verse ${verse.verseNumber}",
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white70,
+                  // Chapter & Verse header
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        "Chapter ${verse.chapter}, Verse ${verse.verseNumber}",
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "Transliteration",
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
+                  const SizedBox(height: 28),
+
+                  // Original Sanskrit
+                  _sectionLabel("Original Sanskrit"),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      verse.originalScript,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.martel(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        height: 1.8,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
+                  _divider(),
+                  const SizedBox(height: 8),
+
+                  // Transliteration
+                  _sectionLabel("Transliteration"),
+                  const SizedBox(height: 10),
                   Text(
                     verse.transliteration,
                     style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.white,
+                      fontSize: 15,
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontStyle: FontStyle.italic,
-                      height: 1.5,
+                      height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    "English Translation",
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
-                  ),
                   const SizedBox(height: 8),
+                  _divider(),
+                  const SizedBox(height: 8),
+
+                  // English Translation
+                  _sectionLabel("English Translation"),
+                  const SizedBox(height: 10),
                   Text(
                     verse.translationEnglish,
                     style: GoogleFonts.inter(
-                      fontSize: 18,
+                      fontSize: 17,
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
-                      height: 1.5,
+                      height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    "Deep Dive",
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white54),
-                  ),
                   const SizedBox(height: 8),
+                  _divider(),
+                  const SizedBox(height: 8),
+
+                  // Deep Dive
+                  _sectionLabel("Deep Dive"),
+                  const SizedBox(height: 10),
                   Text(
                     verse.deepDiveText,
                     style: GoogleFonts.inter(
-                      fontSize: 16,
+                      fontSize: 15,
                       color: Colors.white70,
-                      height: 1.6,
+                      height: 1.7,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -113,66 +149,106 @@ class VerseCard extends StatelessWidget {
     );
   }
 
+  static Widget _sectionLabel(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.white54,
+            letterSpacing: 1.0,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _divider() {
+    return Container(
+      height: 1,
+      color: Colors.white.withValues(alpha: 0.08),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-      child: Stack(
+      padding: EdgeInsets.only(
+        left: 24.0,
+        right: 24.0,
+        top: MediaQuery.of(context).padding.top + 80,
+        bottom: MediaQuery.of(context).padding.bottom + 16,
+      ),
+      child: Column(
         children: [
-          // Main Verse Content
-          Center(
-            child: GlassContainer(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Chapter ${verse.chapter} • Verse ${verse.verseNumber}",
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                    ),
+          // Main Verse Content — scrollable for long verses
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: GlassContainer(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Chapter ${verse.chapter} • Verse ${verse.verseNumber}",
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        isEnglish ? verse.translationEnglish : verse.originalScript,
+                        textAlign: TextAlign.center,
+                        style: isEnglish
+                            ? GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 22,
+                                height: 1.6,
+                                fontWeight: FontWeight.w500,
+                              )
+                            : GoogleFonts.martel(
+                                color: Colors.white,
+                                fontSize: 28,
+                                height: 1.8,
+                                fontWeight: FontWeight.w700,
+                              ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    isEnglish ? verse.translationEnglish : verse.originalScript,
-                    textAlign: TextAlign.center,
-                    style: isEnglish
-                        ? GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 22,
-                            height: 1.6,
-                            fontWeight: FontWeight.w500,
-                          )
-                        : GoogleFonts.martel(
-                            color: Colors.white,
-                            fontSize: 28,
-                            height: 1.8,
-                            fontWeight: FontWeight.w700,
-                          ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
 
-          // Bottom action buttons
+          // Bottom action buttons — always visible, never overlapped
           if (!hideUI)
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
+            Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _ActionButton(
                     icon: Icons.info_outline,
                     label: "Meaning",
-                    onTap: () => _showVerseDetails(context),
+                    onTap: () => showDetailsBottomSheet(context, verse),
                   ),
                   _ActionButton(
                     icon: isSaved ? Icons.bookmark : Icons.bookmark_border,

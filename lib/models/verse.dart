@@ -7,7 +7,6 @@ class Verse {
   final String translationEnglish;
   final String deepDiveText;
   final String backgroundHexColor;
-  final List<String> tags;
 
   Verse({
     required this.id,
@@ -18,7 +17,6 @@ class Verse {
     required this.translationEnglish,
     required this.deepDiveText,
     required this.backgroundHexColor,
-    required this.tags,
   });
 
   factory Verse.fromJson(Map<String, dynamic> json) {
@@ -31,7 +29,6 @@ class Verse {
       translationEnglish: json['translation_english'] as String,
       deepDiveText: json['deep_dive_text'] as String,
       backgroundHexColor: json['background_hex_color'] as String,
-      tags: List<String>.from(json['tags'] as List),
     );
   }
 }

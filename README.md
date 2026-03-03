@@ -1,47 +1,55 @@
-# Bhagvad Gita App 🕉️
+# Bhagvad Gita App
 
-A modern, visually immersive Flutter application designed to deliver the wisdom of the Bhagavad Gita through a "Reels-style" vertical feed.
+A Flutter app that presents Bhagavad Gita verses in a vertical, reels-style experience with modern UI and practical daily-use features.
 
-## ✨ Features
+## Features
+- Vertical feed with smooth swipe navigation.
+- Search and jump to verses by chapter/verse, verse ID, Sanskrit, transliteration, or English text.
+- Language toggle between Sanskrit and English view.
+- Saved verses with persistent storage.
+- Reading history persistence (last-read verse and recent verses).
+- Daily notifications with two entries:
+  - Today's Verse
+  - Random Verse
+- Verse detail bottom sheet with transliteration, translation, and deep-dive text.
+- Share the current verse as an image.
+- Dynamic gradient backgrounds based on verse metadata.
 
-- **Reels-Style Feed:** Swipe vertically through verses for a focused, meditative experience.
-- **Glassmorphism UI:** Elegant, modern design with frosted glass effects.
-- **Bilingual Support:** Toggle between original Sanskrit (Devanagari) and English translations.
-- **Deep Dive:** Detailed meaning, transliteration, and commentary for every verse.
-- **Dynamic Themes:** Background colors transition smoothly based on the verse's theme.
-- **Save & Bookmark:** Keep track of your favorite verses in a dedicated saved list.
-- **Screen Sharing:** Capture and share beautifully formatted verses as high-quality images.
+## Tech Stack
+- Flutter (Dart)
+- google_fonts
+- flutter_local_notifications
+- shared_preferences
+- share_plus
+- path_provider
+- timezone
 
-## 🛠️ Tech Stack
+## Getting Started
+1. Install Flutter SDK.
+2. From project root, install dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Run the app:
+   ```bash
+   flutter run
+   ```
 
-- **Framework:** Flutter
-- **Language:** Dart
-- **Typography:** Google Fonts (Inter, Martel)
-- **State Management:** Local State (StatefulWidgets)
-- **Data Source:** JSON-based local assets
+## Update Dependencies
+To update packages to latest compatible major versions:
+```bash
+flutter pub outdated
+flutter pub upgrade --major-versions
+flutter pub get
+```
 
-## 📖 Documentation
+## Project Structure
+- `lib/models/` data models.
+- `lib/screens/` primary screens and app flow.
+- `lib/services/` service layer (notifications).
+- `lib/widgets/` reusable UI components.
+- `assets/data/` verse source JSON.
 
-For a detailed breakdown of the project's architecture, data models, and component structure, please refer to the [DOCUMENTATION.md](./DOCUMENTATION.md) file.
-
-## 🚀 Getting Started
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/Sunnyislostt/Bhagvad-gita.git
-    ```
-2.  **Install dependencies:**
-    ```bash
-    flutter pub get
-    ```
-3.  **Run the app:**
-    ```bash
-    flutter run
-    ```
-
-## 📂 Project Structure
-
-- `lib/models/`: Data models for Gita verses.
-- `lib/screens/`: Primary app screens (Feed, Saved list).
-- `lib/widgets/`: Reusable UI components like `GlassContainer` and `VerseCard`.
-- `assets/data/`: JSON data containing the Gita verses.
+## Notes
+- Android notifications require notification permissions (runtime on newer Android versions).
+- Daily notifications are scheduled in-app and refreshed when the app initializes.

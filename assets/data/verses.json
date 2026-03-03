@@ -7,12 +7,7 @@
     "transliteration": "karmaṇy-evādhikāras te mā phaleṣhu kadāchana\nmā karma-phala-hetur bhūr mā te saṅgo ’stvakarmani",
     "translation_english": "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. Never consider yourself to be the cause of the results of your activities, nor be attached to inaction.",
     "deep_dive_text": "This verse establishes the core principle of Karma Yoga. It advises acting without attachment to the outcome. By focusing on the effort rather than the result, one attains peace and excellence. It is freedom from the anxiety of expectations.",
-    "background_hex_color": "#FFECD2",
-    "tags": [
-      "duty",
-      "action",
-      "detachment"
-    ]
+    "background_hex_color": "#FFECD2"
   },
   {
     "id": "BG_02_14",
@@ -22,12 +17,7 @@
     "transliteration": "mātrā-sparśhās tu kaunteya śhītoṣhṇa-sukha-duḥkha-dāḥ\nāgamāpāyino ’nityās tāns titikṣhasva bhārata",
     "translation_english": "O son of Kunti, the nonpermanent appearance of happiness and distress, and their disappearance in due course, are like the appearance and disappearance of winter and summer seasons.",
     "deep_dive_text": "Sensory inputs are temporary. They produce dualities like joy and sorrow, heat and cold. Because they come and go, one should learn to tolerate them without being disturbed.",
-    "background_hex_color": "#D4FC79",
-    "tags": [
-      "tolerance",
-      "senses",
-      "impermanence"
-    ]
+    "background_hex_color": "#D4FC79"
   },
   {
     "id": "BG_06_05",
@@ -37,12 +27,7 @@
     "transliteration": "uddhared ātmanātmānaṁ nātmānam avasādayet\nātmaiva hyātmano bandhur ātmaiva ripur ātmanaḥ",
     "translation_english": "Elevate yourself through the power of your mind, and not degrade yourself, for the mind can be the friend and also the enemy of the self.",
     "deep_dive_text": "We are our own saviors. A controlled mind acts as our greatest ally in our spiritual and worldly endeavors. Conversely, an uncontrolled mind becomes our worst enemy.",
-    "background_hex_color": "#84FAB0",
-    "tags": [
-      "mind",
-      "self-control",
-      "elevation"
-    ]
+    "background_hex_color": "#84FAB0"
   },
   {
     "id": "BG_02_20",
@@ -52,12 +37,7 @@
     "transliteration": "na jāyate mriyate vā kadāchin\nnāyaṁ bhūtvā bhavitā vā na bhūyaḥ\najo nityaḥ śhāśhvato ’yaṁ purāṇo\nna hanyate hanyamāne śharīre",
     "translation_english": "The soul is neither born, nor does it ever die; nor having once existed, does it ever cease to be. The soul is without birth, eternal, immortal, and ageless. It is not destroyed when the body is destroyed.",
     "deep_dive_text": "This verse describes the eternal nature of the soul. It asserts that our true self is beyond physical birth and death, encouraging fearlessness.",
-    "background_hex_color": "#FFD194",
-    "tags": [
-      "soul",
-      "eternal",
-      "immortality"
-    ]
+    "background_hex_color": "#FFD194"
   },
   {
     "id": "BG_18_66",
@@ -67,12 +47,7 @@
     "transliteration": "sarva-dharmān parityajya mām ekaṁ śharaṇaṁ vraja\nahaṁ tvāṁ sarva-pāpebhyo mokṣhayiṣhyāmi mā śhuchaḥ",
     "translation_english": "Abandon all varieties of dharmas and simply surrender unto Me alone. I shall liberate you from all sinful reactions; do not fear.",
     "deep_dive_text": "This is the essence of Bhakti Yoga. Complete surrender to the Divine brings ultimate peace and liberation from all karmic burdens.",
-    "background_hex_color": "#A18CD1",
-    "tags": [
-      "surrender",
-      "liberation",
-      "peace"
-    ]
+    "background_hex_color": "#A18CD1"
   },
   {
     "id": "BG_12_15",
@@ -82,11 +57,316 @@
     "transliteration": "yasmān nodvijate loko lokān nodvijate cha yaḥ\nharṣhāmarṣha-bhayodvegair mukto yaḥ sa cha me priyaḥ",
     "translation_english": "Those who are not a source of annoyance to anyone and who in turn are not agitated by anyone, who are equal in pleasure and pain, and free from fear and anxiety, completely such devotees are very dear to Me.",
     "deep_dive_text": "A true devotee maintains equanimity. By transcending typical emotional reactivity, they achieve a state of lasting peace and exhibit kindness toward all beings.",
-    "background_hex_color": "#FF9A9E",
-    "tags": [
-      "devotion",
-      "equanimity",
-      "peace"
-    ]
+    "background_hex_color": "#FF9A9E"
+  },
+  {
+    "id": "BG_04_07",
+    "chapter": 4,
+    "verse_number": 7,
+    "original_script": "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्।।",
+    "transliteration": "yadā yadā hi dharmasya glānir bhavati bhārata\nabhyutthānam adharmasya tadātmānaṁ sṛijāmyaham",
+    "translation_english": "Whenever and wherever there is a decline in religious practice, O descendant of Bharata, and a predominant rise of irreligion—at that time I descend Myself.",
+    "deep_dive_text": "The divine promises to manifest on Earth in times of profound moral and spiritual decline. It demonstrates cosmic compassion and the ongoing maintenance of universal balance (dharma).",
+    "background_hex_color": "#FEE140"
+  },
+  {
+    "id": "BG_04_08",
+    "chapter": 4,
+    "verse_number": 8,
+    "original_script": "परित्राणाय साधूनां विनाशाय च दुष्कृताम्।\nधर्मसंस्थापनार्थाय सम्भवामि युगे युगे।।",
+    "transliteration": "paritrāṇāya sādhūnāṁ vināśhāya cha duṣhkṛitām\ndharma-sansthāpanārthāya sambhavāmi yuge yuge",
+    "translation_english": "To deliver the pious and to annihilate the miscreants, as well as to reestablish the principles of religion, I Myself appear, millennium after millennium.",
+    "deep_dive_text": "A continuation of the previous verse, explaining the purpose of divine avatars: to protect the righteous, deter the wicked, and restore profound truth and cosmic order.",
+    "background_hex_color": "#FA709A"
+  },
+  {
+    "id": "BG_09_22",
+    "chapter": 9,
+    "verse_number": 22,
+    "original_script": "अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते।\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम्।।",
+    "transliteration": "ananyāśh chintayanto māṁ ye janāḥ paryupāsate\nteṣhāṁ nityābhiyuktānāṁ yoga-kṣhemaṁ vahāmyaham",
+    "translation_english": "But those who always worship Me with exclusive devotion, meditating on My transcendental form—to them I carry what they lack, and I preserve what they have.",
+    "deep_dive_text": "This is a profound promise of divine protection and provision. When a devotee surrenders completely without seeking anything else, the Supreme Lord takes personal responsibility for their material and spiritual welfare.",
+    "background_hex_color": "#4FACFE"
+  },
+  {
+    "id": "BG_02_44",
+    "chapter": 2,
+    "verse_number": 44,
+    "original_script": "भोगैश्वर्यप्रसक्तानां तयापहृतचेतसाम्।\nव्यवसायात्मिका बुद्धिः समाधौ न विधीयते।।",
+    "transliteration": "bhogaiśhvarya-prasaktānāṁ tayāpahṛita-chetasām\nvyavasāyātmikā buddhiḥ samādhau na vidhīyate",
+    "translation_english": "In the minds of those who are too attached to sense enjoyment and material opulence, and who are bewildered by such things, the resolute determination for devotional service to the Supreme Lord does not take place.",
+    "deep_dive_text": "Excessive attachment to material wealth, titles, and sensual pleasures distracts the mind from its true purpose. True inner peace and spiritual determination (samadhi) require turning the focus inward.",
+    "background_hex_color": "#A8EDE5"
+  },
+  {
+    "id": "BG_02_48",
+    "chapter": 2,
+    "verse_number": 48,
+    "original_script": "योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनञ्जय।\nसिद्ध्यसिद्ध्योर्निर्ममो भूत्वा समत्वं योग उच्यते।।",
+    "transliteration": "yoga-sthḥ kurhu karmāṇi saṅgaṁ tyaktvā dhanañjaya\nsiddhy-asiddhyoḥ nirmamo bhūtvā samatvaṁ yoga ucyate",
+    "translation_english": "Be steadfast in yoga, O Arjuna. Perform your duty and abandon all attachment to success or failure. Such evenness of mind is called yoga.",
+    "deep_dive_text": "This verse teaches the path of selfless action. By performing one's duties without attachment to results, one achieves mental equilibrium and union with the Divine. This is the essence of Karma Yoga.",
+    "background_hex_color": "#89F7FE"
+  },
+  {
+    "id": "BG_02_56",
+    "chapter": 2,
+    "verse_number": 56,
+    "original_script": "दुःखेष्वनुद्विग्नमनास्तुष्टः स्थिरासनो।\nमनसीमल्परो योगी चित्तं निर्णयेदात्मनः।।",
+    "transliteration": "duḥkheṣhv anudvigna-manās tuṣṭhaḥ sthirāsano\nmanasīśhv apar-o yogī chittaṁ nirdhayed ātmanaḥ",
+    "translation_english": "One who is not disturbed by distress, who does not crave pleasure, and who is free from attachment, fear, and anger - such a person is called a sage of steady wisdom.",
+    "deep_dive_text": "A person of steady wisdom remains unmoved by life's dualities - pleasure and pain, success and failure. They have mastered their mind and emotions, achieving inner peace regardless of external circumstances.",
+    "background_hex_color": "#FFB6C1"
+  },
+  {
+    "id": "BG_04_35",
+    "chapter": 4,
+    "verse_number": 35,
+    "original_script": "यज्ज्ञात्वा न पुनर्मोहमेवं यास्यसि पाण्डव।\nयेन भूतान्यशेषाणि द्रक्ष्यस्यात्मन्यथो मयि।।",
+    "transliteration": "yaj jñātvā na punar moham evaṁ yāsyasi pāṇḍava\nyena bhūtāny aśeṣāṇi drakṣhyasy ātmany atho mayi",
+    "translation_english": "Having obtained true knowledge, you shall never again become perplexed, O Arjuna. By this knowledge, you shall see all beings in your own Self and in Me.",
+    "deep_dive_text": "Self-realization destroys all confusion and illusion. When one truly understands the nature of the self and the Supreme, they perceive unity in all of existence - seeing the divine in every being.",
+    "background_hex_color": "#DDA0DD"
+  },
+  {
+    "id": "BG_05_10",
+    "chapter": 5,
+    "verse_number": 10,
+    "original_script": "ब्रह्मण्याधाय कर्माणि सङ्गं त्यक्त्वा करोति यः।\nलिप्यते न स पापेन पद्मपत्रमिवाम्भसा।।",
+    "transliteration": "brahmaṇyādhāya karmāṇi saṅgaṁ tyaktvā karoti yaḥ\nlipyate na sa pāpena padma-patram ivāmbhasā",
+    "translation_english": "One who performs his duty without attachment, surrendering the fruits to the Supreme Lord, is unaffected by sin, just as a lotus leaf is untouched by water.",
+    "deep_dive_text": "Like a lotus leaf that remains dry despite being in water, a devotee who acts without attachment to results remains untouched by karmic reactions. This is the power of selfless action offered to the Divine.",
+    "background_hex_color": "#98FB98"
+  },
+  {
+    "id": "BG_06_06",
+    "chapter": 6,
+    "verse_number": 6,
+    "original_script": "बन्धुरात्मात्मनस्तस्य येनात्मैवात्मना जितः।\nअनात्मनस्तु शत्रुत्वे वर्तेत्तात्मा शत्रुवत्।।",
+    "transliteration": "bandhur ātmātmanas tasya yenaātmaivātmanā jitaḥ\nanātmanas tu śhatratve vartet tātma śhatru-vat",
+    "translation_english": "For one who has conquered the mind, the mind is the best friend. But for one who has failed to do so, the mind will remain the greatest enemy.",
+    "deep_dive_text": "The mind can be our greatest ally or worst enemy. Those who master their minds gain a faithful friend that leads them toward enlightenment. Those who fail to control it remain trapped in self-destructive patterns.",
+    "background_hex_color": "#87CEEB"
+  },
+  {
+    "id": "BG_06_23",
+    "chapter": 6,
+    "verse_number": 23,
+    "original_script": "तम विद्याद्दुःखसंयोगवियोगं योगसञ्ज्ञितम्।\nस निश्चयेन योक्तव्यो योगोऽनिर्विण्णचेतसा।।",
+    "transliteration": "tam vidyād duḥkha-saṁyoga-viyogaṁ yoga-saṅjñitam\nsa niśhchayena yoktavyo yogo 'nirviṇṇa-chetasā",
+    "translation_english": "Know that yoga is the separation from the union with suffering. This state of separation from suffering must be attained with determination and a steady mind.",
+    "deep_dive_text": "Yoga is not just meditation - it is the science of liberating the soul from suffering. By practicing with unwavering dedication, one gradually transcends worldly pain and attains eternal peace.",
+    "background_hex_color": "#FFA07A"
+  },
+  {
+    "id": "BG_07_19",
+    "chapter": 7,
+    "verse_number": 19,
+    "original_script": "बहूनां जन्मनामन्ते ज्ञानवान्मां प्रपद्यते।\nवासुदेवः सर्वमिति स महात्मा सुदुर्लभः।।",
+    "transliteration": "bahūnāṁ janma-nām ante jñānān māṁ prapadyate\nvāsudevaḥ sarvam iti sa mahātmā su-durlabhaḥ",
+    "translation_english": "After many births, the wise one realizes that everything is Vasudeva (the Supreme Lord). Such a great soul is very rare to find.",
+    "deep_dive_text": "True wisdom leads to the recognition that the entire universe is a manifestation of the Divine. This understanding - that everything is God - marks the highest stage of spiritual realization.",
+    "background_hex_color": "#BA55D3"
+  },
+  {
+    "id": "BG_09_26",
+    "chapter": 9,
+    "verse_number": 26,
+    "original_script": "पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति।\nतदहं भक्त्युपहृतमश्नामि प्रयतात्मनः।।",
+    "transliteration": "patraṁ puṣpaṁ phalaṁ toyaṁ yo me bhaktyā prayachchhati\ntad ahaṁ bhakty-upahṛitam aśnāmi prayatātmanaḥ",
+    "translation_english": "If one offers Me with love and devotion a leaf, a flower, fruit, or water, I will accept it from that pure-hearted soul.",
+    "deep_dive_text": "The Lord values devotion over material wealth. A simple offering made with love is more precious than elaborate rituals performed without faith. Sincerity matters more than grandeur.",
+    "background_hex_color": "#20B2AA"
+  },
+  {
+    "id": "BG_10_10",
+    "chapter": 10,
+    "verse_number": 10,
+    "original_script": "तेषां सततयुक्तानां भजतां प्रीतिपूर्वकम्।\nददामि बुद्धियोगं तं येन मामुपयांति ते।।",
+    "transliteration": "teṣhāṁ satata-yuktānāṁ bhajatāṁ prīti-pūrvakam\ndadāmi buddhi-yogaṁ tena mām upayānti te",
+    "translation_english": "To those who are constantly devoted to Me and worship with love, I grant the understanding by which they can come to Me.",
+    "deep_dive_text": "Divine wisdom is not earned through intellectual pursuits alone but through loving devotion. Those who serve the Lord with dedication receive the gift of spiritual insight that leads them to God.",
+    "background_hex_color": "#FF6347"
+  },
+  {
+    "id": "BG_11_33",
+    "chapter": 11,
+    "verse_number": 33,
+    "original_script": "तस्मात्त्वमुत्तिष्ठ यशो लभस्व जित्वा शत्रून्भुङ्क्ष्व राज्यं समृद्धः।\nमयैवैते निहताश्च पार्थ मयि स्थितास्ते न मेऽस्ति वध्यः।।",
+    "transliteration": "tasmāt tvam uttiṣhṭha yaśo labhasva jitvā śhatrūn bhuṅkṣhva rājyam samṛiddhaḥ\nmayaivai-te nihatāśh cha pārtha mayi sthitāste na me 'sti vadhyaḥ",
+    "translation_english": "Therefore, arise and attain glory! Conquer your enemies and enjoy prosperous kingdom. They are already slain by Me; you will simply be the instrument, O Arjuna.",
+    "deep_dive_text": "The Lord assures Arjuna that the outcome is already certain. His role is simply to be a channel for divine will. This teaching reminds us that we are instruments of a higher purpose, not the ultimate cause.",
+    "background_hex_color": "#4682B4"
+  },
+  {
+    "id": "BG_12_05",
+    "chapter": 12,
+    "verse_number": 5,
+    "original_script": "क्लेशोऽधिकतरस्तेषामव्यक्तासक्तचेतसाम्।\nअव्यक्ता हि गतिर्दुःखं देहवद्भिरवाप्यते।।",
+    "transliteration": "kleśo 'dhikataras teṣhām avyaktāsakta-chetasām\navyaktā hi gatiḥ duḥkhaṁ dehavadbhir avāpyate",
+    "translation_english": "For those whose minds are attached to the unmanifest, the path is more difficult. The unmanifest is hard for embodied beings to reach.",
+    "deep_dive_text": "While focusing on the formless Absolute is noble, it is extremely challenging for those with physical bodies. The path of devotion to a personal form of God is more accessible and practical for most seekers.",
+    "background_hex_color": "#8FBC8F"
+  },
+  {
+    "id": "BG_14_26",
+    "chapter": 14,
+    "verse_number": 26,
+    "original_script": "मां च योऽव्यभिचारेण भक्तियोगेन सेवते।\nस गुणान्समतीत्यैतान्ब्रह्मभूयाय कल्पते।।",
+    "transliteration": "māṁ cha yo 'vyabhicāreṇa bhakti-yogena sevate\nsa guṇān samatītyaitān brahma-bhūyāya kalpate",
+    "translation_english": "One who serves Me with unwavering devotion transcends the three modes of material nature and becomes eligible for liberation.",
+    "deep_dive_text": "Pure devotion transcends the gunas - the three qualities of material nature (goodness, passion, and ignorance). By loving service to the Divine, one rises above these modes and attains spiritual freedom.",
+    "background_hex_color": "#D8BFD8"
+  },
+  {
+    "id": "BG_16_01",
+    "chapter": 16,
+    "verse_number": 1,
+    "original_script": "अभयं सत्त्वसंशुद्धिर्ज्ञानयोगव्यवस्थितिः।\nदानं दमश्च यज्ञश्च स्वाध्यायस्तप आर्जवम्।।",
+    "transliteration": "abhayam sattva-śhuddhir jñāna-yoga-vyavasthitiḥ\ndānam dayaśhcha yajñaśhcha svādhyāyas tapa ārjavam",
+    "translation_english": "Fearlessness, purity of heart, steady practice of knowledge, giving, self-control, and austerity are the qualities of those born with divine virtues.",
+    "deep_dive_text": "Divine qualities include inner courage, mental purity, generosity, compassion, and discipline. These virtues arise naturally in those with saintly tendencies and lead to spiritual elevation.",
+    "background_hex_color": "#40E0D0"
+  },
+  {
+    "id": "BG_17_08",
+    "chapter": 17,
+    "verse_number": 8,
+    "original_script": "आयुःसत्त्वबलारोग्यम्सुखप्रीतिविवर्धनः।\nरसायनमिमं पुण्यं सौम्यं वातालपहारि च।।",
+    "transliteration": "āyuḥ-sattva-balārogyaṁ sukha-prīti-vivardhanaḥ\nrasāyanam imaṁ puṇyaṁ saumyaṁ vāta-alahāri cha",
+    "translation_english": "Foods that increase life, pure strength, health, happiness, and joy are sattvic. They are savory, oleaginous, substantial, and agreeable to the heart.",
+    "deep_dive_text": "Sattvic foods promote longevity, vitality, and spiritual progress. They include fresh fruits, vegetables, grains, and dairy. Such pure nutrition supports both physical health and mental clarity for meditation.",
+    "background_hex_color": "#F0E68C"
+  },
+  {
+    "id": "BG_18_05",
+    "chapter": 18,
+    "verse_number": 5,
+    "original_script": "यज्ञदानतपःकर्म न त्याज्यं कार्यमेव तत्।\nयज्ञो दानं तपश्चैव पावनानि मनीषिणाम्।।",
+    "transliteration": "yajña-dāna-tapaḥ-karma na tyājyaṁ kāryam eva tat\nyajño dānaṁ tapaśh chaiva pāvanāni manīṣiṇām",
+    "translation_english": "Sacrifice, charity, and penance should not be abandoned but performed, for they purify the wise.",
+    "deep_dive_text": "Sacred duties like sacrifice, giving, and self-discipline are essential for spiritual growth. They are not burdens but purifying practices that elevate the practitioner and benefit society.",
+    "background_hex_color": "#CD853F"
+  },
+  {
+    "id": "BG_18_47",
+    "chapter": 18,
+    "verse_number": 47,
+    "original_script": "श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात्।\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः।।",
+    "transliteration": "śreyān svadharmaḥ viguñaḥ paradharmāt sv-anuṣhṭhitāt\nsvadharme nidhanaṁ śreyaḥ paradharmo bhayāvahaḥ",
+    "translation_english": "It is better to discharge one's prescribed duty, even if imperfectly, than to perform another's duty perfectly. It is preferable to die in the path of one's own duty; another's duty is perilous.",
+    "deep_dive_text": "Following one's own path in life - even with flaws - is spiritually superior to following someone else's path perfectly. Each person's dharma is unique, and authentic fulfillment comes from living it.",
+    "background_hex_color": "#B8860B"
+  },
+  {
+    "id": "BG_18_65",
+    "chapter": 18,
+    "verse_number": 65,
+    "original_script": "मन्यसेऽकृतं पूर्वं नित्यवत्सर्वकार्येषु।\nतस्मात्सर्वाणि कर्माणि मयि संन्यस्य मत्परः।।",
+    "transliteration": "man-yase 'kṛitaṁ pūrvaṁ nityavat sarva-kāryeṣhu\ntasmāt sarvāṇi karmāṇi mayi sannyasya mat-paraḥ",
+    "translation_english": "Always think of Me, become My devotee, and offer all actions to Me. With Me as your supreme goal, you will surely come to Me.",
+    "deep_dive_text": "This verse emphasizes complete surrender to the Divine. By making the Lord the center of life and offering all actions to Him, the devotee ensures ultimate salvation and eternal union with God.",
+    "background_hex_color": "#9932CC"
+  },
+  {
+    "id": "BG_02_62",
+    "chapter": 2,
+    "verse_number": 62,
+    "original_script": "ध्यायतो विषयान्पुंसः सङ्गस्तेषूपजायते।\nसङ्गात्सञ्जायते कामः कामात्क्रोधोऽभिजायते।।",
+    "transliteration": "dhyāyato viṣhayān puṁsaḥ saṅgas teṣhūpajāyate\nsaṅgāt sañjāyate kāmaḥ kāmāt krodho 'bhijāyate",
+    "translation_english": "While contemplating the objects of the senses, a person develops attachment for them, and from such attachment lust develops, and from lust anger arises.",
+    "deep_dive_text": "This verse describes the chain of downfall. Dwelling on sense objects breeds attachment, which leads to desire, and unfulfilled desire becomes anger. Understanding this chain is the first step to breaking free from it.",
+    "background_hex_color": "#E8A87C"
+  },
+  {
+    "id": "BG_03_21",
+    "chapter": 3,
+    "verse_number": 21,
+    "original_script": "यद्यदाचरति श्रेष्ठस्तत्तदेवेतरो जनः।\nस यत्प्रमाणं कुरुते लोकस्तदनुवर्तते।।",
+    "transliteration": "yad yad ācharati śhreṣhṭhas tat tad evetaro janaḥ\nsa yat pramāṇaṁ kurute lokas tad anuvartate",
+    "translation_english": "Whatever action a great person performs, common people follow. Whatever standards they set, the rest of the world pursues.",
+    "deep_dive_text": "Leaders and role models have an immense responsibility. Their conduct sets the standard for society. When the wise act with integrity, they inspire others to do the same — creating a ripple effect of virtue.",
+    "background_hex_color": "#85DCB0"
+  },
+  {
+    "id": "BG_03_27",
+    "chapter": 3,
+    "verse_number": 27,
+    "original_script": "प्रकृतेः क्रियमाणानि गुणैः कर्माणि सर्वशः।\nअहंकारविमूढात्मा कर्ताहमिति मन्यते।।",
+    "transliteration": "prakṛiteḥ kriyamāṇāni guṇaiḥ karmāṇi sarvaśhaḥ\nahaṅkāra-vimūḍhātmā kartāham iti manyate",
+    "translation_english": "All activities are carried out by the three modes of material nature. But in ignorance, the soul, deluded by false ego, thinks itself to be the doer.",
+    "deep_dive_text": "Our actions are driven by the interplay of the three gunas — sattva, rajas, and tamas. The ego creates the illusion that we are the independent doers. True wisdom lies in recognizing nature's role while performing duties selflessly.",
+    "background_hex_color": "#C3AED6"
+  },
+  {
+    "id": "BG_05_22",
+    "chapter": 5,
+    "verse_number": 22,
+    "original_script": "ये हि संस्पर्शजा भोगा दुःखयोनय एव ते।\nआद्यन्तवन्तः कौन्तेय न तेषु रमते बुधः।।",
+    "transliteration": "ye hi saṁsparśha-jā bhogā duḥkha-yonaya eva te\nādyantavantaḥ kaunteya na teṣhu ramate budhaḥ",
+    "translation_english": "Pleasures born of sense contact are sources of pain, for they have a beginning and an end. The wise do not delight in them, O son of Kunti.",
+    "deep_dive_text": "Sensory pleasures are fleeting and ultimately lead to suffering because they are temporary. The wise understand this and seek lasting fulfillment through spiritual practice rather than chasing transient experiences.",
+    "background_hex_color": "#F7DC6F"
+  },
+  {
+    "id": "BG_08_05",
+    "chapter": 8,
+    "verse_number": 5,
+    "original_script": "अन्तकाले च मामेव स्मरन्मुक्त्वा कलेवरम्।\nयः प्रयाति स मद्भावं याति नास्त्यत्र संशयः।।",
+    "transliteration": "anta-kāle cha mām eva smaran muktvā kalevaram\nyaḥ prayāti sa mad-bhāvaṁ yāti nāstyatra saṁśhayaḥ",
+    "translation_english": "Whoever, at the end of life, quits the body remembering Me alone, attains My nature. Of this there is no doubt.",
+    "deep_dive_text": "The state of mind at death determines our next destination. By cultivating constant remembrance of the Divine throughout life, one naturally thinks of God at the final moment, ensuring liberation.",
+    "background_hex_color": "#AED6F1"
+  },
+  {
+    "id": "BG_10_20",
+    "chapter": 10,
+    "verse_number": 20,
+    "original_script": "अहमात्मा गुडाकेश सर्वभूताशयस्थितः।\nअहमादिश्च मध्यं च भूतानामन्त एव च।।",
+    "transliteration": "aham ātmā guḍākeśha sarva-bhūtāśhaya-sthitaḥ\naham ādiśh cha madhyaṁ cha bhūtānām anta eva cha",
+    "translation_english": "I am the Self seated in the hearts of all creatures. I am the beginning, the middle, and the end of all beings.",
+    "deep_dive_text": "The Supreme Lord resides within every living being as the inner Self. He is the origin, sustainer, and ultimate destination of all existence. This verse reveals the all-pervading nature of the Divine.",
+    "background_hex_color": "#E6B0AA"
+  },
+  {
+    "id": "BG_13_28",
+    "chapter": 13,
+    "verse_number": 28,
+    "original_script": "समं सर्वेषु भूतेषु तिष्ठन्तं परमेश्वरम्।\nविनश्यत्स्वविनश्यन्तं यः पश्यति स पश्यति।।",
+    "transliteration": "samaṁ sarveṣhu bhūteṣhu tiṣhṭhantaṁ parameśhvaram\nvinaśhyatsv avinaśhyantaṁ yaḥ paśhyati sa paśhyati",
+    "translation_english": "One who sees the Supreme Lord dwelling equally in all beings, the imperishable within the perishable — that person truly sees.",
+    "deep_dive_text": "True vision is seeing the eternal amidst the temporary. When we perceive the same divine essence in all creatures — from the smallest insect to the greatest saint — we attain genuine spiritual sight.",
+    "background_hex_color": "#A3E4D7"
+  },
+  {
+    "id": "BG_15_07",
+    "chapter": 15,
+    "verse_number": 7,
+    "original_script": "ममैवांशो जीवलोके जीवभूतः सनातनः।\nमनःषष्ठानीन्द्रियाणि प्रकृतिस्थानि कर्षति।।",
+    "transliteration": "mamaivāṁśho jīva-loke jīva-bhūtaḥ sanātanaḥ\nmanaḥ-ṣhaṣhṭhānīndriyāṇi prakṛiti-sthāni karṣhati",
+    "translation_english": "The living entities in this world are My eternal fragmental parts. They struggle with the six senses including the mind, which are situated in material nature.",
+    "deep_dive_text": "Every soul is an eternal part of the Divine, not separate from God but a fragment of the supreme whole. Trapped in the material world, the soul struggles with the senses and mind, forgetting its divine origin.",
+    "background_hex_color": "#D2B4DE"
+  },
+  {
+    "id": "BG_18_06",
+    "chapter": 18,
+    "verse_number": 6,
+    "original_script": "एतान्यपि तु कर्माणि सङ्गं त्यक्त्वा फलानि च।\nकर्तव्यानीति मे पार्थ निश्चितं मतमुत्तमम्।।",
+    "transliteration": "etāny api tu karmāṇi saṅgaṁ tyaktvā phalāni cha\nkartavyānīti me pārtha niśhchitaṁ matam uttamam",
+    "translation_english": "All these activities should be performed without attachment or expectation of results. That, O Partha, is My definite and supreme judgment.",
+    "deep_dive_text": "This verse delivers Krishna's final instruction on action: perform all duties as sacred offerings, free from attachment to outcomes. This is the highest wisdom — doing what must be done with complete surrender.",
+    "background_hex_color": "#F5B7B1"
+  },
+  {
+    "id": "BG_02_70",
+    "chapter": 2,
+    "verse_number": 70,
+    "original_script": "आपूर्यमाणमचलप्रतिष्ठं\nसमुद्रमापः प्रविशन्ति यद्वत्।\nतद्वत्कामा यं प्रविशन्ति सर्वे\nस शान्तिमाप्नोति न कामकामी।।",
+    "transliteration": "āpūryamāṇam achala-pratiṣhṭhaṁ\nsamudram āpaḥ praviśhanti yadvat\ntadvat kāmā yaṁ praviśhanti sarve\nsa śhāntim āpnoti na kāma-kāmī",
+    "translation_english": "A person who is not disturbed by the incessant flow of desires — that enter like rivers into the ocean, which is ever being filled but is always still — can alone achieve peace, and not the person who strives to satisfy such desires.",
+    "deep_dive_text": "Like the ocean remains undisturbed despite countless rivers pouring into it, a person of steady wisdom remains calm despite desires arising in the mind. Peace comes not from fulfilling desires but from being unmoved by them.",
+    "background_hex_color": "#7FB3D8"
   }
 ]

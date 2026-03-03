@@ -1,73 +1,115 @@
 # Bhagvad Gita App - Documentation
 
-## Project Overview
-The Bhagvad Gita App is a modern, visually immersive Flutter application designed to deliver the wisdom of the Bhagavad Gita in a "Reels-style" vertical feed. It features a high-end "glassmorphism" UI, dynamic background transitions, and interactive features to enhance the user's spiritual journey.
+## 1. Overview
+Bhagvad Gita App is a Flutter application that delivers verses through a vertical, immersive feed. The app focuses on daily reflection with searchable content, persistent progress, saved verses, and scheduled notifications.
 
----
+## 2. Stack and Dependencies
+- Flutter / Dart
+- `google_fonts`: typography
+- `flutter_local_notifications`: local notifications
+- `shared_preferences`: local persistence
+- `share_plus`: share verse screenshots
+- `path_provider`: temporary file storage for sharing
+- `timezone`: notification scheduling support
 
-## Technical Stack
-- **Framework:** Flutter (Dart)
-- **Key Dependencies:**
-  - `google_fonts`: For elegant typography (Inter, Martel).
-  - `share_plus`: For sharing verses as images.
-  - `path_provider`: To handle temporary image storage for sharing.
-  - `cupertino_icons`: For iOS-style iconography.
+## 3. Project Layout
+- `lib/main.dart`: app bootstrap and service initialization.
+- `lib/models/verse.dart`: verse model and JSON mapping.
+- `lib/screens/feed_screen.dart`: main UI, feed logic, search, save/history, sharing.
+- `lib/services/notification_service.dart`: notification setup, preference toggle, scheduling logic.
+- `lib/widgets/glass_container.dart`: reusable frosted-glass UI wrapper.
+- `lib/widgets/verse_card.dart`: verse card rendering and detail sheet.
+- `assets/data/verses.json`: verse data source.
 
----
+## 4. Data Model
+`Verse` fields:
+- `id`
+- `chapter`
+- `verseNumber`
+- `originalScript`
+- `transliteration`
+- `translationEnglish`
+- `deepDiveText`
+- `backgroundHexColor`
 
-## Architecture
+These are parsed in `Verse.fromJson` from the local JSON asset.
 
-### 1. Data Model (`lib/models/verse.dart`)
-The `Verse` class represents a single verse from the Gita. It includes:
-- `id`: Unique identifier.
-- `chapter` & `verseNumber`: Location in the Gita.
-- `originalScript`: Sanskrit text in Devanagari.
-- `transliteration`: Romanized Sanskrit.
-- `translationEnglish`: Meaning in English.
-- `deepDiveText`: Extended commentary or explanation.
-- `backgroundHexColor`: Metadata for dynamic theme adjustment.
-- `tags`: Keywords for categorization.
+## 5. Feed Screen Behavior
+### Verse Loading
+- Loads `assets/data/verses.json` via `rootBundle`.
+- Parses JSON into `List<Verse>`.
 
-### 2. Main Screen (`lib/screens/feed_screen.dart`)
-The core of the app, implementing the vertical scroll logic:
-- **Data Loading:** Fetches data from `assets/data/verses.json` using `rootBundle`.
-- **Navigation:** Uses a `PageView.builder` with `Axis.vertical`.
-- **Features:**
-  - **Language Toggle:** Instantly switch between Sanskrit and English translations.
-  - **Saved Verses:** A simple state management system using a `Set` to track bookmarked verses, accessible via a bottom sheet.
-  - **Dynamic Backgrounds:** Uses `AnimatedContainer` to transition background gradients smoothly as the user scrolls.
+### Navigation
+- Uses `PageView.builder` with `Axis.vertical`.
+- Tracks current page index for restore/history.
 
-### 3. UI Components (`lib/widgets/`)
-- **GlassContainer:** A custom wrapper utilizing `BackdropFilter` and `ClipRRect` to create a frosted glass effect (Glassmorphism). It supports customizable blur, opacity, and border radius.
-- **VerseCard:** The primary unit of the feed.
-  - Displays the verse content centered in a glass panel.
-  - Contains action buttons: **Meaning** (opens details), **Save**, and **Share**.
-  - Includes a `DraggableScrollableSheet` for deep-dive information.
+### Search and Jump
+- Opens a search bottom sheet.
+- Matches against chapter/verse pattern, verse ID, Sanskrit text, transliteration, and English translation.
+- Selecting a result animates directly to the corresponding verse in the feed.
 
----
+### Save and History Persistence
+Uses `SharedPreferences` keys:
+- `saved_verse_ids`
+- `last_read_verse_index`
+- `recent_verse_ids`
 
-## Key Features
+Behavior:
+- Saved verses persist across app restarts.
+- Last-read index is restored on launch.
+- Recent verse list is maintained and used as default search suggestions.
 
-### Reels-Style Interaction
-The vertical feed allows users to swipe through verses seamlessly, providing a focused, meditative experience similar to modern social media content delivery.
+### Sharing
+- Captures visible content with `RepaintBoundary`.
+- Writes PNG to temporary storage.
+- Shares image + verse reference via `share_plus`.
 
-### Screen Sharing
-The app captures the current verse as a high-resolution PNG image using `RepaintBoundary`. This allows users to share beautifully formatted verses directly to other platforms (WhatsApp, Instagram, etc.).
+## 6. Notification Service
+### Initialization
+- Initializes `FlutterLocalNotificationsPlugin`.
+- If notifications are enabled, refreshes scheduled notifications during app startup.
 
-### Meaning & Deep Dive
-Each verse includes a "Deep Dive" section accessible via the "Meaning" button. This provides transliteration, English translation, and a detailed explanation in an elegant modal bottom sheet.
+### Toggle
+- `toggleNotifications(bool enabled)` stores preference and either:
+  - schedules daily notifications, or
+  - cancels all notifications.
 
-### Language Localization
-Users can toggle between the original Sanskrit (`सं`) and the English translation (`EN`) with a single tap on the header.
+### Daily Scheduling Logic
+- Schedules notifications for the next 30 days.
+- Sends two notifications per day:
+  - Morning: "Today's Verse"
+  - Evening: "Random Verse"
+- Uses deterministic day-based selection for today's verse and a deterministic random selection for random verse.
 
----
+## 7. UI Components
+### GlassContainer
+Reusable translucent container used across cards and sheets.
 
-## Data Source
-The app's content is driven by a JSON file located at `assets/data/verses.json`. This makes the app easily extensible—adding new verses or updating translations only requires modifying this file.
+### VerseCard
+Displays current verse and actions:
+- Meaning
+- Save
+- Share
 
----
+Includes detailed bottom sheet with Sanskrit, transliteration, translation, and deep-dive explanation.
 
-## Performance & Optimization
-- **Image Generation:** Uses `pixelRatio: 3.0` during screen capture to ensure shared images look sharp on all devices.
-- **Smooth Transitions:** Background color changes are animated over 500ms to avoid jarring visual jumps.
-- **Efficient Loading:** Verse data is decoded asynchronously during the `initState` of the main screen.
+## 8. Dependency Update Workflow
+From project root:
+```bash
+flutter pub outdated
+flutter pub upgrade --major-versions
+flutter pub get
+```
+
+## 9. Verification Checklist
+After code changes:
+1. `flutter pub get`
+2. `flutter analyze`
+3. `flutter run`
+
+Manual checks:
+- Search and jump opens correct verse.
+- Saved verses persist after restart.
+- Last-read verse is restored after restart.
+- Notification toggle schedules/cancels as expected.
+- Share action exports an image successfully.
