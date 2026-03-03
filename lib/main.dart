@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/feed_screen.dart';
+import 'screens/chapters_home_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -36,7 +36,7 @@ class BhagvadGitaApp extends StatelessWidget {
           ThemeData(brightness: Brightness.dark).textTheme,
         ),
       ),
-      home: const FeedScreen(),
+      home: const ChaptersHomeScreen(),
     );
   }
 }

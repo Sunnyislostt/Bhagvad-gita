@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 import '../models/verse.dart';
+import 'verse_repository.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -13,6 +12,7 @@ class NotificationService {
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final VerseRepository _verseRepository = const VerseRepository();
 
   static const String _prefKey = 'notifications_enabled';
   static const int _daysToSchedule = 30;
@@ -162,14 +162,6 @@ class NotificationService {
   }
 
   Future<List<Verse>> _loadVerses() async {
-    try {
-      final response = await rootBundle.loadString('assets/data/verses.json');
-      final List<dynamic> data = json.decode(response) as List<dynamic>;
-      return data
-          .map((verseJson) => Verse.fromJson(verseJson as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      return <Verse>[];
-    }
+    return _verseRepository.loadVerses();
   }
 }

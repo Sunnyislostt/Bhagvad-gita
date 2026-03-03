@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,9 +10,15 @@ import '../models/verse.dart';
 import '../widgets/verse_card.dart';
 import '../widgets/glass_container.dart';
 import '../services/notification_service.dart';
+import '../services/reading_progress_service.dart';
+import '../services/widget_service.dart';
+import '../services/verse_repository.dart';
+import 'settings_screen.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key});
+  const FeedScreen({super.key, this.initialVerseId});
+
+  final String? initialVerseId;
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -24,9 +28,15 @@ class _FeedScreenState extends State<FeedScreen> {
   static const String _savedVersesKey = 'saved_verse_ids';
   static const String _lastReadIndexKey = 'last_read_verse_index';
   static const String _recentVerseIdsKey = 'recent_verse_ids';
+  static const String _widgetLanguageKey = 'widget_language';
+  static const String _displayLanguageKey = 'display_language';
 
   final PageController _pageController = PageController();
   final GlobalKey _globalKey = GlobalKey();
+  final WidgetService _widgetService = WidgetService();
+  final VerseRepository _verseRepository = const VerseRepository();
+  final ReadingProgressService _readingProgressService =
+      ReadingProgressService();
 
   List<Verse> _verses = <Verse>[];
   Set<String> _savedVerseIds = <String>{};
@@ -34,9 +44,10 @@ class _FeedScreenState extends State<FeedScreen> {
 
   int _currentIndex = 0;
   bool _isLoading = true;
-  bool _showEnglish = false;
+  String _displayLanguage = 'sanskrit';
   bool _hideUI = false;
   bool _notificationsEnabled = false;
+  String _widgetLanguage = 'english';
 
   @override
   void initState() {
@@ -52,15 +63,60 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Future<void> _loadPersistedState() async {
     final prefs = await SharedPreferences.getInstance();
+    final rawWidgetLanguage = prefs.getString(_widgetLanguageKey);
+    final rawDisplayLanguage = prefs.getString(_displayLanguageKey);
+    final normalizedWidgetLanguage = _normalizeWidgetLanguage(
+      rawWidgetLanguage,
+    );
+    final normalizedDisplayLanguage = _normalizeDisplayLanguage(
+      rawDisplayLanguage,
+    );
+
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _savedVerseIds = (prefs.getStringList(_savedVersesKey) ?? <String>[]).toSet();
+      _savedVerseIds = (prefs.getStringList(_savedVersesKey) ?? <String>[])
+          .toSet();
       _recentVerseIds = prefs.getStringList(_recentVerseIdsKey) ?? <String>[];
       _currentIndex = prefs.getInt(_lastReadIndexKey) ?? 0;
+      _widgetLanguage = normalizedWidgetLanguage;
+      _displayLanguage = normalizedDisplayLanguage;
     });
+
+    if (rawWidgetLanguage != null && rawWidgetLanguage != normalizedWidgetLanguage) {
+      await prefs.setString(_widgetLanguageKey, normalizedWidgetLanguage);
+    }
+    if (rawDisplayLanguage != null && rawDisplayLanguage != normalizedDisplayLanguage) {
+      await prefs.setString(_displayLanguageKey, normalizedDisplayLanguage);
+    }
+  }
+
+  String _normalizeWidgetLanguage(String? language) {
+    final normalized = language?.trim().toLowerCase();
+    if (normalized == 'sanskrit' || normalized == 'sa') {
+      return 'sanskrit';
+    }
+    return 'english';
+  }
+
+  String _normalizeDisplayLanguage(String? language) {
+    final normalized = language?.trim().toLowerCase();
+    if (normalized == 'english' ||
+        normalized == 'en' ||
+        normalized == 'hindi' ||
+        normalized == 'hi') {
+      return 'english';
+    }
+    return 'sanskrit';
+  }
+
+  String _languageDisplayName(String language) {
+    return switch (language) {
+      'sanskrit' => 'Sanskrit',
+      _ => 'English',
+    };
   }
 
   Future<void> _persistSavedVerses() async {
@@ -76,6 +132,16 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<void> _persistRecentVerses() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_recentVerseIdsKey, _recentVerseIds);
+  }
+
+  Future<void> _persistWidgetLanguage(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_widgetLanguageKey, language);
+  }
+
+  Future<void> _persistDisplayLanguage(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_displayLanguageKey, language);
   }
 
   void _recordVerseInHistory(String verseId) {
@@ -100,45 +166,30 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  Future<void> _toggleNotifications() async {
-    final newState = !_notificationsEnabled;
-    await NotificationService().toggleNotifications(newState);
-
+  Future<void> _setNotifications(bool enabled) async {
+    await NotificationService().toggleNotifications(enabled);
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _notificationsEnabled = newState;
+      _notificationsEnabled = enabled;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          newState
-              ? "Daily notifications enabled (Today's Verse + Random Verse)"
-              : 'Daily notifications disabled',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   Future<void> _loadVerses() async {
     try {
-      final response = await rootBundle.loadString('assets/data/verses.json');
-      final data = json.decode(response) as List<dynamic>;
-      final loadedVerses = data
-          .map((verseJson) => Verse.fromJson(verseJson as Map<String, dynamic>))
-          .toList();
+      final loadedVerses = await _verseRepository.loadVerses();
 
       if (!mounted) {
         return;
       }
 
+      final preferredIndex =
+          _resolveInitialIndex(loadedVerses) ?? _currentIndex;
       final safeIndex = loadedVerses.isEmpty
           ? 0
-          : _currentIndex.clamp(0, loadedVerses.length - 1).toInt();
+          : preferredIndex.clamp(0, loadedVerses.length - 1).toInt();
 
       setState(() {
         _verses = loadedVerses;
@@ -155,6 +206,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
         _recordVerseInHistory(loadedVerses[safeIndex].id);
         _persistCurrentIndex(safeIndex);
+        _recordChapterProgress(loadedVerses[safeIndex]);
       }
     } catch (e) {
       debugPrint('Error loading verses: $e');
@@ -165,6 +217,23 @@ class _FeedScreenState extends State<FeedScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  int? _resolveInitialIndex(List<Verse> verses) {
+    final initialId = widget.initialVerseId;
+    if (initialId == null || initialId.isEmpty || verses.isEmpty) {
+      return null;
+    }
+
+    final targetIndex = verses.indexWhere((verse) => verse.id == initialId);
+    if (targetIndex == -1) {
+      return null;
+    }
+    return targetIndex;
+  }
+
+  Future<void> _recordChapterProgress(Verse verse) async {
+    await _readingProgressService.recordVerse(verse);
   }
 
   Color _hexToColor(String hexCode) {
@@ -182,7 +251,9 @@ class _FeedScreenState extends State<FeedScreen> {
 
     await Future.delayed(const Duration(milliseconds: 300));
     try {
-      final boundary = _globalKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          _globalKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) {
         throw Exception('Could not capture screen');
       }
@@ -195,14 +266,17 @@ class _FeedScreenState extends State<FeedScreen> {
 
       final pngBytes = byteData.buffer.asUint8List();
       final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/bhagavad_gita_verse_${DateTime.now().millisecondsSinceEpoch}.png');
+      final file = File(
+        '${directory.path}/bhagavad_gita_verse_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
       await file.writeAsBytes(pngBytes);
 
       final verse = _verses[_currentIndex];
       await SharePlus.instance.share(
         ShareParams(
           files: <XFile>[XFile(file.path)],
-          text: 'Chapter ${verse.chapter}, Verse ${verse.verseNumber} - Bhagavad Gita',
+          text:
+              'Chapter ${verse.chapter}, Verse ${verse.verseNumber} - Bhagavad Gita',
         ),
       );
     } catch (e) {
@@ -224,6 +298,85 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
+  Future<void> _pinVerseToWidget(Verse verse) async {
+    final success = await _widgetService.pinVerse(
+      verse,
+      language: _widgetLanguage,
+    );
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Pinned Chapter ${verse.chapter}, Verse ${verse.verseNumber} to widget'
+              : 'Unable to pin verse to widget',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _setWidgetLanguage(String language) async {
+    final normalized = _normalizeWidgetLanguage(language);
+    setState(() {
+      _widgetLanguage = normalized;
+    });
+    await _persistWidgetLanguage(normalized);
+    await _widgetService.setLanguage(normalized);
+  }
+
+  void _cycleDisplayLanguage() {
+    final next = switch (_displayLanguage) {
+      'sanskrit' => 'english',
+      _ => 'sanskrit',
+    };
+
+    setState(() {
+      _displayLanguage = next;
+    });
+    _persistDisplayLanguage(next);
+  }
+
+  String _displayLanguageLabel() {
+    return switch (_displayLanguage) {
+      'sanskrit' => 'SA',
+      'english' => 'EN',
+      _ => 'SA',
+    };
+  }
+
+  String _textForLanguage(Verse verse, String language) {
+    return switch (language) {
+      'sanskrit' => verse.originalScript,
+      _ => verse.translationEnglish,
+    };
+  }
+
+  Future<void> _shareVerseText(Verse verse) async {
+    try {
+      final verseText = _textForLanguage(verse, _displayLanguage);
+      await SharePlus.instance.share(
+        ShareParams(
+          text:
+              'Chapter ${verse.chapter}, Verse ${verse.verseNumber}\n\n$verseText\n\n- Bhagavad Gita',
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to share this verse right now.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _toggleSave(String id) {
     setState(() {
       if (_savedVerseIds.contains(id)) {
@@ -233,16 +386,6 @@ class _FeedScreenState extends State<FeedScreen> {
       }
     });
     _persistSavedVerses();
-  }
-
-  List<Verse> _recentVerses() {
-    final verseById = <String, Verse>{
-      for (final verse in _verses) verse.id: verse,
-    };
-    return _recentVerseIds
-        .map((id) => verseById[id])
-        .whereType<Verse>()
-        .toList();
   }
 
   bool _matchesSearchQuery(Verse verse, String query) {
@@ -271,46 +414,42 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
-  void _showSearchSheet() {
-    final searchController = TextEditingController();
-    var searchResults = _recentVerses();
-    if (searchResults.isEmpty) {
-      searchResults = _verses.take(30).toList();
+  Future<void> _showChapterPickerSheet() async {
+    final versesByChapter = <int, List<Verse>>{};
+    for (final verse in _verses) {
+      versesByChapter.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
+    }
+    for (final entry in versesByChapter.entries) {
+      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+    }
+    final chapters = versesByChapter.keys.toList()..sort();
+    if (chapters.isEmpty) {
+      return;
     }
 
-    showModalBottomSheet(
+    final currentChapter = _verses[_currentIndex].chapter;
+    final currentVerseId = _verses[_currentIndex].id;
+    var selectedChapter = currentChapter;
+
+    final selectedVerseId = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (_) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.75,
-          minChildSize: 0.45,
-          maxChildSize: 0.95,
+          initialChildSize: 0.78,
+          minChildSize: 0.48,
+          maxChildSize: 0.92,
+          expand: false,
           builder: (context, scrollController) {
             return StatefulBuilder(
               builder: (context, setModalState) {
-                void updateSearchResults(String value) {
-                  final query = value.trim();
-                  List<Verse> nextResults;
-
-                  if (query.isEmpty) {
-                    final recent = _recentVerses();
-                    nextResults = recent.isNotEmpty ? recent : _verses.take(30).toList();
-                  } else {
-                    nextResults = _verses
-                        .where((verse) => _matchesSearchQuery(verse, query))
-                        .take(60)
-                        .toList();
-                  }
-
-                  setModalState(() {
-                    searchResults = nextResults;
-                  });
-                }
-
+                final chapterVerses =
+                    versesByChapter[selectedChapter] ?? const <Verse>[];
                 return GlassContainer(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                   opacity: 0.15,
                   blur: 25,
                   child: Column(
@@ -326,71 +465,337 @@ class _FeedScreenState extends State<FeedScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Go To Chapter & Verse',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: TextField(
-                          controller: searchController,
+                        child: DropdownButtonFormField<int>(
+                          key: ValueKey<int>(selectedChapter),
+                          initialValue: selectedChapter,
+                          dropdownColor: const Color(0xFF1C1C1E),
                           style: GoogleFonts.inter(color: Colors.white),
-                          onChanged: updateSearchResults,
+                          iconEnabledColor: Colors.white70,
                           decoration: InputDecoration(
-                            hintText: 'Search chapter, verse, Sanskrit, or English',
-                            hintStyle: GoogleFonts.inter(color: Colors.white70),
-                            prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                            suffixIcon: searchController.text.isEmpty
-                                ? null
-                                : IconButton(
-                                    icon: const Icon(Icons.close, color: Colors.white70),
-                                    onPressed: () {
-                                      searchController.clear();
-                                      updateSearchResults('');
-                                    },
-                                  ),
+                            labelText: 'Chapter',
+                            labelStyle: GoogleFonts.inter(
+                              color: Colors.white70,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.08),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: chapters
+                              .map(
+                                (chapter) => DropdownMenuItem<int>(
+                                  value: chapter,
+                                  child: Text('Chapter $chapter'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setModalState(() {
+                              selectedChapter = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Tap a verse',
+                            style: GoogleFonts.inter(
+                              color: Colors.white70,
+                              fontSize: 12,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Expanded(
-                        child: searchResults.isEmpty
+                        child: GridView.builder(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 5,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                childAspectRatio: 1.5,
+                              ),
+                          itemCount: chapterVerses.length,
+                          itemBuilder: (context, index) {
+                            final verse = chapterVerses[index];
+                            final isCurrent = verse.id == currentVerseId;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => Navigator.of(context).pop(verse.id),
+                              child: Container(
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: isCurrent
+                                      ? const Color(
+                                          0xFFFFD27D,
+                                        ).withValues(alpha: 0.26)
+                                      : Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isCurrent
+                                        ? const Color(
+                                            0xFFFFD27D,
+                                          ).withValues(alpha: 0.85)
+                                        : Colors.white.withValues(alpha: 0.18),
+                                  ),
+                                ),
+                                child: Text(
+                                  '${verse.verseNumber}',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || selectedVerseId == null) {
+      return;
+    }
+    _jumpToVerseById(selectedVerseId);
+  }
+
+  Future<void> _showWidgetVersePicker() async {
+    final selectedVerseId = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) {
+        return _VerseSearchSheet(
+          verses: _verses,
+          matchesSearchQuery: _matchesSearchQuery,
+          initialChildSize: 0.8,
+          title: 'Choose Specific Verse',
+          subtitle: 'Widget language: ${_languageDisplayName(_widgetLanguage)}',
+          trailingIcon: const Icon(
+            Icons.widgets_outlined,
+            color: Colors.white70,
+          ),
+          previewTextBuilder: (verse) => _textForLanguage(verse, _widgetLanguage),
+        );
+      },
+    );
+
+    if (!mounted || selectedVerseId == null) {
+      return;
+    }
+
+    final selectedIndex = _verses.indexWhere(
+      (verse) => verse.id == selectedVerseId,
+    );
+    if (selectedIndex == -1) {
+      return;
+    }
+    await _pinVerseToWidget(_verses[selectedIndex]);
+  }
+
+  Future<void> _openSettingsPage() async {
+    final accentColor = _hexToColor(_verses[_currentIndex].backgroundHexColor);
+    final action = await Navigator.of(context).push<SettingsAction>(
+      PageRouteBuilder<SettingsAction>(
+        transitionDuration: const Duration(milliseconds: 220),
+        reverseTransitionDuration: const Duration(milliseconds: 180),
+        pageBuilder: (_, animation, secondaryAnimation) => SettingsScreen(
+          notificationsEnabled: _notificationsEnabled,
+          widgetLanguage: _widgetLanguage,
+          themeColor: accentColor,
+          onNotificationsChanged: _setNotifications,
+          onWidgetLanguageChanged: _setWidgetLanguage,
+        ),
+        transitionsBuilder: (_, animation, secondaryAnimation, child) {
+          final fade = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+          final slide = Tween<Offset>(
+            begin: const Offset(0.03, 0),
+            end: Offset.zero,
+          ).animate(fade);
+          return FadeTransition(
+            opacity: fade,
+            child: SlideTransition(position: slide, child: child),
+          );
+        },
+      ),
+    );
+
+    if (!mounted || action == null) {
+      return;
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    if (!mounted) {
+      return;
+    }
+
+    if (action == SettingsAction.openBookmarks) {
+      _showSavedVerses(context);
+    } else if (action == SettingsAction.chooseWidgetVerse) {
+      _showWidgetVersePicker();
+    } else if (action == SettingsAction.openChapterProgress) {
+      _showChapterProgressSheet();
+    }
+  }
+
+  void _showSavedVerses(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                final activeSavedVerses = _verses
+                    .where((verse) => _savedVerseIds.contains(verse.id))
+                    .toList();
+                return GlassContainer(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                  opacity: 0.15,
+                  blur: 25,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Saved Verses',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: activeSavedVerses.isEmpty
                             ? Center(
                                 child: Text(
-                                  'No verses found',
-                                  style: GoogleFonts.inter(color: Colors.white70),
+                                  'No saved verses yet.',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white70,
+                                  ),
                                 ),
                               )
                             : ListView.builder(
                                 controller: scrollController,
-                                itemCount: searchResults.length,
+                                itemCount: activeSavedVerses.length,
                                 itemBuilder: (context, index) {
-                                  final verse = searchResults[index];
+                                  final verse = activeSavedVerses[index];
                                   return ListTile(
                                     contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 6,
+                                      horizontal: 24,
+                                      vertical: 8,
                                     ),
                                     title: Text(
                                       'Chapter ${verse.chapter}, Verse ${verse.verseNumber}',
                                       style: GoogleFonts.inter(
-                                        color: Colors.white,
                                         fontWeight: FontWeight.w600,
+                                        color: Colors.white,
                                       ),
                                     ),
                                     subtitle: Text(
                                       verse.translationEnglish,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.inter(color: Colors.white70),
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white70,
+                                      ),
                                     ),
-                                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 14),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.info_outline,
+                                            color: Colors.white54,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(sheetContext).pop();
+                                            VerseCard.showDetailsBottomSheet(
+                                              parentContext,
+                                              verse,
+                                            );
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.share_outlined,
+                                            color: Colors.white54,
+                                          ),
+                                          onPressed: () =>
+                                              _shareVerseText(verse),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.bookmark_remove,
+                                            color: Colors.white54,
+                                          ),
+                                          onPressed: () {
+                                            _toggleSave(verse.id);
+                                            setModalState(() {});
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                     onTap: () {
-                                      Navigator.pop(context);
-                                      _jumpToVerseById(verse.id);
+                                      Navigator.of(sheetContext).pop();
+                                      VerseCard.showDetailsBottomSheet(
+                                        parentContext,
+                                        verse,
+                                      );
                                     },
                                   );
                                 },
@@ -404,29 +809,44 @@ class _FeedScreenState extends State<FeedScreen> {
           },
         );
       },
-    ).whenComplete(searchController.dispose);
+    );
   }
 
-  void _showSavedVerses(BuildContext context) {
-    final savedVerses = _verses.where((verse) => _savedVerseIds.contains(verse.id)).toList();
+  Future<void> _showChapterProgressSheet() async {
+    final chapterProgress = await _readingProgressService.loadChapterProgress();
+    if (!mounted) {
+      return;
+    }
 
-    showModalBottomSheet(
+    final versesByChapter = <int, List<Verse>>{};
+    for (final verse in _verses) {
+      versesByChapter.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
+    }
+    for (final entry in versesByChapter.entries) {
+      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+    }
+    final chapters = versesByChapter.keys.toList()..sort();
+
+    final selectedVerseId = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) {
+      builder: (sheetContext) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (context, scrollController) {
+          initialChildSize: 0.78,
+          minChildSize: 0.42,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, scrollController) {
             return GlassContainer(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(30),
+              ),
               opacity: 0.15,
               blur: 25,
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 22),
                   Center(
                     child: Container(
                       width: 50,
@@ -437,71 +857,137 @@ class _FeedScreenState extends State<FeedScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   Text(
-                    'Saved Verses',
+                    'Chapter Progress',
                     style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Expanded(
-                    child: savedVerses.isEmpty
-                        ? Center(
-                            child: Text(
-                              'No saved verses yet.',
-                              style: GoogleFonts.inter(color: Colors.white70),
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: chapters.length,
+                      itemBuilder: (context, index) {
+                        final chapter = chapters[index];
+                        final chapterVerses = versesByChapter[chapter]!;
+                        final total = chapterVerses.length;
+                        final readRaw = chapterProgress[chapter] ?? 0;
+                        final read = readRaw < 0
+                            ? 0
+                            : (readRaw > total ? total : readRaw);
+                        final progress = total == 0 ? 0.0 : read / total;
+
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08),
+                              ),
                             ),
-                          )
-                        : ListView.builder(
-                            controller: scrollController,
-                            itemCount: savedVerses.length,
-                            itemBuilder: (context, index) {
-                              final verse = savedVerses[index];
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                                title: Text(
-                                  'Chapter ${verse.chapter}, Verse ${verse.verseNumber}',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  verse.translationEnglish,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.inter(color: Colors.white70),
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.info_outline, color: Colors.white54),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        VerseCard.showDetailsBottomSheet(context, verse);
-                                      },
+                                    Text(
+                                      'Chapter $chapter',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.bookmark_remove, color: Colors.white54),
-                                      onPressed: () {
-                                        _toggleSave(verse.id);
-                                        Navigator.pop(context);
-                                        _showSavedVerses(context);
-                                      },
+                                    const Spacer(),
+                                    Text(
+                                      '$read / $total',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  VerseCard.showDetailsBottomSheet(context, verse);
-                                },
-                              );
-                            },
+                                const SizedBox(height: 8),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 7,
+                                    backgroundColor: Colors.white.withValues(
+                                      alpha: 0.14,
+                                    ),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                          Color(0xFFFFD27D),
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  height: 38,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: chapterVerses.length,
+                                    separatorBuilder: (_, _) =>
+                                        const SizedBox(width: 8),
+                                    itemBuilder: (context, verseIndex) {
+                                      final verse = chapterVerses[verseIndex];
+                                      final isRead = verse.verseNumber <= read;
+                                      return InkWell(
+                                        borderRadius: BorderRadius.circular(10),
+                                        onTap: () => Navigator.of(
+                                          sheetContext,
+                                        ).pop(verse.id),
+                                        child: Container(
+                                          width: 44,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: isRead
+                                                ? const Color(
+                                                    0xFFFFD27D,
+                                                  ).withValues(alpha: 0.28)
+                                                : Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: isRead
+                                                  ? const Color(
+                                                      0xFFFFD27D,
+                                                    ).withValues(alpha: 0.8)
+                                                  : Colors.white.withValues(
+                                                      alpha: 0.18,
+                                                    ),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${verse.verseNumber}',
+                                            style: GoogleFonts.inter(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -510,23 +996,26 @@ class _FeedScreenState extends State<FeedScreen> {
         );
       },
     );
+
+    if (!mounted || selectedVerseId == null) {
+      return;
+    }
+    _jumpToVerseById(selectedVerseId);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_verses.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('No verses found.')),
-      );
+      return const Scaffold(body: Center(child: Text('No verses found.')));
     }
 
-    final currentBgColor = _hexToColor(_verses[_currentIndex].backgroundHexColor);
+    final currentBgColor = _hexToColor(
+      _verses[_currentIndex].backgroundHexColor,
+    );
 
     return Scaffold(
       extendBody: true,
@@ -559,12 +1048,13 @@ class _FeedScreenState extends State<FeedScreen> {
                 });
                 _persistCurrentIndex(index);
                 _recordVerseInHistory(_verses[index].id);
+                _recordChapterProgress(_verses[index]);
               },
               itemBuilder: (context, index) {
                 final verse = _verses[index];
                 return VerseCard(
                   verse: verse,
-                  isEnglish: _showEnglish,
+                  displayLanguage: _displayLanguage,
                   isSaved: _savedVerseIds.contains(verse.id),
                   onSave: () => _toggleSave(verse.id),
                   onShare: _shareCurrentScreen,
@@ -581,21 +1071,24 @@ class _FeedScreenState extends State<FeedScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _showEnglish = !_showEnglish;
-                        });
-                      },
+                      onTap: _cycleDisplayLanguage,
                       child: GlassContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         borderRadius: BorderRadius.circular(20),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.translate, color: Colors.white, size: 18),
+                            const Icon(
+                              Icons.translate,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Text(
-                              _showEnglish ? 'EN' : 'SA',
+                              _displayLanguageLabel(),
                               style: GoogleFonts.inter(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -609,27 +1102,12 @@ class _FeedScreenState extends State<FeedScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         GestureDetector(
-                          onTap: _toggleNotifications,
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(10),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Icon(
-                              _notificationsEnabled
-                                  ? Icons.notifications_active
-                                  : Icons.notifications_off_outlined,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: _showSearchSheet,
+                          onTap: _showChapterPickerSheet,
                           child: GlassContainer(
                             padding: const EdgeInsets.all(10),
                             borderRadius: BorderRadius.circular(20),
                             child: const Icon(
-                              Icons.search,
+                              Icons.menu_book_outlined,
                               color: Colors.white,
                               size: 18,
                             ),
@@ -637,23 +1115,14 @@ class _FeedScreenState extends State<FeedScreen> {
                         ),
                         const SizedBox(width: 10),
                         GestureDetector(
-                          onTap: () => _showSavedVerses(context),
+                          onTap: _openSettingsPage,
                           child: GlassContainer(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.all(10),
                             borderRadius: BorderRadius.circular(20),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.bookmark, color: Colors.white, size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Saved',
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            child: const Icon(
+                              Icons.settings_outlined,
+                              color: Colors.white,
+                              size: 18,
                             ),
                           ),
                         ),
@@ -665,6 +1134,431 @@ class _FeedScreenState extends State<FeedScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _VerseSearchSheet extends StatefulWidget {
+  const _VerseSearchSheet({
+    required this.verses,
+    required this.matchesSearchQuery,
+    required this.initialChildSize,
+    required this.trailingIcon,
+    this.title,
+    this.subtitle,
+    this.previewTextBuilder,
+  });
+
+  final List<Verse> verses;
+  final bool Function(Verse verse, String query) matchesSearchQuery;
+  final double initialChildSize;
+  final String? title;
+  final String? subtitle;
+  final String Function(Verse verse)? previewTextBuilder;
+  final Icon trailingIcon;
+
+  @override
+  State<_VerseSearchSheet> createState() => _VerseSearchSheetState();
+}
+
+class _VerseSearchSheetState extends State<_VerseSearchSheet> {
+  final TextEditingController _searchController = TextEditingController();
+
+  String _query = '';
+  late final List<int> _chapters;
+  int? _selectedChapter;
+  int? _selectedVerseNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _chapters = widget.verses.map((verse) => verse.chapter).toSet().toList()
+      ..sort();
+    if (_chapters.isNotEmpty) {
+      _selectedChapter = _chapters.first;
+      final verseNumbers = _verseNumbersForChapter(_selectedChapter!);
+      if (verseNumbers.isNotEmpty) {
+        _selectedVerseNumber = verseNumbers.first;
+      }
+    }
+  }
+
+  List<Verse> get _searchResults {
+    if (_query.isEmpty) {
+      return const <Verse>[];
+    }
+
+    return widget.verses
+        .where((verse) => widget.matchesSearchQuery(verse, _query))
+        .take(60)
+        .toList();
+  }
+
+  List<int> _verseNumbersForChapter(int chapter) {
+    return widget.verses
+        .where((verse) => verse.chapter == chapter)
+        .map((verse) => verse.verseNumber)
+        .toSet()
+        .toList()
+      ..sort();
+  }
+
+  Verse? get _selectedVerse {
+    final chapter = _selectedChapter;
+    final verseNumber = _selectedVerseNumber;
+    if (chapter == null || verseNumber == null) {
+      return null;
+    }
+
+    for (final verse in widget.verses) {
+      if (verse.chapter == chapter && verse.verseNumber == verseNumber) {
+        return verse;
+      }
+    }
+    return null;
+  }
+
+  Map<int, List<Verse>> _groupByChapter(List<Verse> verses) {
+    final grouped = <int, List<Verse>>{};
+    for (final verse in verses) {
+      grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
+    }
+    final sortedKeys = grouped.keys.toList()..sort();
+    return <int, List<Verse>>{
+      for (final chapter in sortedKeys) chapter: grouped[chapter]!,
+    };
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _updateQuery(String value) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _query = value.trim();
+    });
+  }
+
+  void _onChapterChanged(int? chapter) {
+    if (chapter == null || !mounted) {
+      return;
+    }
+    final verseNumbers = _verseNumbersForChapter(chapter);
+    setState(() {
+      _selectedChapter = chapter;
+      _selectedVerseNumber = verseNumbers.isEmpty ? null : verseNumbers.first;
+    });
+  }
+
+  void _onVerseChanged(int? verseNumber) {
+    if (verseNumber == null || !mounted) {
+      return;
+    }
+    setState(() {
+      _selectedVerseNumber = verseNumber;
+    });
+  }
+
+  Widget _buildBrowseSection(ScrollController scrollController) {
+    final chapter = _selectedChapter;
+    final verseNumbers = chapter == null
+        ? const <int>[]
+        : _verseNumbersForChapter(chapter);
+    final selectedVerse = _selectedVerse;
+
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Browse by Chapter & Verse',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Pick chapter and verse directly',
+                style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      key: ValueKey<int?>(chapter),
+                      initialValue: chapter,
+                      decoration: InputDecoration(
+                        labelText: 'Chapter',
+                        labelStyle: GoogleFonts.inter(color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF1C1C1E),
+                      style: GoogleFonts.inter(color: Colors.white),
+                      iconEnabledColor: Colors.white70,
+                      items: _chapters
+                          .map(
+                            (value) => DropdownMenuItem<int>(
+                              value: value,
+                              child: Text(
+                                'Chapter $value',
+                                style: GoogleFonts.inter(color: Colors.white),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _onChapterChanged,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      key: ValueKey<int?>(_selectedVerseNumber),
+                      initialValue: verseNumbers.contains(_selectedVerseNumber)
+                          ? _selectedVerseNumber
+                          : null,
+                      decoration: InputDecoration(
+                        labelText: 'Verse',
+                        labelStyle: GoogleFonts.inter(color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      dropdownColor: const Color(0xFF1C1C1E),
+                      style: GoogleFonts.inter(color: Colors.white),
+                      iconEnabledColor: Colors.white70,
+                      items: verseNumbers
+                          .map(
+                            (value) => DropdownMenuItem<int>(
+                              value: value,
+                              child: Text(
+                                'V$value',
+                                style: GoogleFonts.inter(color: Colors.white),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _onVerseChanged,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: selectedVerse == null
+                      ? null
+                      : () {
+                          FocusScope.of(context).unfocus();
+                          Navigator.of(context).pop(selectedVerse.id);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    selectedVerse == null
+                        ? 'Select a verse'
+                        : 'Open Chapter ${selectedVerse.chapter}, Verse ${selectedVerse.verseNumber}',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Or type in search above',
+          style: GoogleFonts.inter(color: Colors.white70),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGroupedResults(
+    ScrollController scrollController,
+    List<Verse> results,
+  ) {
+    final grouped = _groupByChapter(results);
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      children: [
+        for (final entry in grouped.entries) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+            child: Text(
+              'Chapter ${entry.key}',
+              style: GoogleFonts.inter(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ),
+          for (final verse in entry.value)
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 6,
+              ),
+              title: Text(
+                'Verse ${verse.verseNumber}',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                widget.previewTextBuilder?.call(verse) ?? verse.translationEnglish,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(color: Colors.white70),
+              ),
+              trailing: widget.trailingIcon,
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                Navigator.of(context).pop(verse.id);
+              },
+            ),
+        ],
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final results = _searchResults;
+    return DraggableScrollableSheet(
+      initialChildSize: widget.initialChildSize,
+      minChildSize: 0.45,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) {
+        return GlassContainer(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          opacity: 0.15,
+          blur: 25,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              if (widget.title != null) ...[
+                const SizedBox(height: 20),
+                Text(
+                  widget.title!,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ] else
+                const SizedBox(height: 20),
+              if (widget.subtitle != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  widget.subtitle!,
+                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 13),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  controller: _searchController,
+                  style: GoogleFonts.inter(color: Colors.white),
+                  onChanged: _updateQuery,
+                  decoration: InputDecoration(
+                    hintText:
+                        'Search chapter, verse, Sanskrit, or English',
+                    hintStyle: GoogleFonts.inter(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              _updateQuery('');
+                            },
+                          ),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.08),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: _query.isEmpty
+                    ? _buildBrowseSection(scrollController)
+                    : results.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No verses found',
+                          style: GoogleFonts.inter(color: Colors.white70),
+                        ),
+                      )
+                    : _buildGroupedResults(scrollController, results),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
