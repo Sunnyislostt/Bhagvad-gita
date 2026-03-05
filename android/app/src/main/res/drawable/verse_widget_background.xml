@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <corners android:radius="24dp" />
-    <gradient
-        android:angle="300"
-        android:startColor="#CC8A4B12"
-        android:centerColor="#CC4A274B"
-        android:endColor="#CC172A45" />
-    <stroke
-        android:width="1dp"
-        android:color="#80FFFFFF" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/widget_bg_dark" />
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="26dp" />
+            <gradient
+                android:angle="320"
+                android:startColor="#B81A142A"
+                android:centerColor="#AA223C63"
+                android:endColor="#B8172B48" />
+            <stroke
+                android:width="1dp"
+                android:color="#88FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

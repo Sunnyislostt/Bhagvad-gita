@@ -10,69 +10,67 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="end|center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/widget_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Bhagvad Gita"
-            android:textAllCaps="true"
-            android:textColor="#F4FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.08" />
-
-        <TextView
-            android:id="@+id/widget_language"
+            android:id="@+id/widget_reference"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/verse_widget_chip_background"
-            android:paddingLeft="11dp"
-            android:paddingTop="4dp"
-            android:paddingRight="11dp"
-            android:paddingBottom="4dp"
-            android:text="English"
-            android:textColor="#EEFFFFFF"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            android:gravity="end|center_vertical"
+            android:text="Chapter 1 - Verse 1"
+            android:textColor="#F2FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.01"
+            android:shadowColor="#99000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="2" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/widget_reference"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Chapter 1, Verse 1"
-        android:textColor="#CCFFFFFF"
-        android:textSize="12sp"
-        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/widget_verse"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/verse_widget_verse_surface"
         android:ellipsize="end"
         android:fontFamily="serif"
-        android:lineSpacingExtra="3dp"
-        android:maxLines="8"
-        android:padding="12dp"
+        android:gravity="center"
+        android:lineSpacingExtra="5dp"
+        android:maxLines="9"
+        android:paddingLeft="14dp"
+        android:paddingTop="12dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="12dp"
         android:textColor="#FFFFFFFF"
-        android:textSize="15sp" />
+        android:textSize="15sp"
+        android:shadowColor="#AA000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="2" />
 
     <TextView
         android:id="@+id/widget_footer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_gravity="end"
-        android:text="Tap to open app"
+        android:background="@drawable/verse_widget_chip_background"
+        android:clickable="true"
+        android:paddingLeft="8dp"
+        android:paddingTop="4dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="4dp"
+        android:text="Open app"
         android:textColor="#A6FFFFFF"
         android:textSize="10sp"
         android:textStyle="bold"
-        android:letterSpacing="0.03" />
+        android:letterSpacing="0.03"
+        android:shadowColor="#88000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="1.5" />
 </LinearLayout>

@@ -29,7 +29,11 @@ class _FeedScreenState extends State<FeedScreen> {
   static const String _lastReadIndexKey = 'last_read_verse_index';
   static const String _recentVerseIdsKey = 'recent_verse_ids';
   static const String _widgetLanguageKey = 'widget_language';
+  static const String _widgetModeKey = 'widget_mode';
   static const String _displayLanguageKey = 'display_language';
+  static const String _themeModeKey = 'theme_mode';
+  static const String _darkBackgroundImage = 'assets/images/Dark.jpeg';
+  static const String _lightBackgroundImage = 'assets/images/light .jpeg';
 
   final PageController _pageController = PageController();
   final GlobalKey _globalKey = GlobalKey();
@@ -48,29 +52,50 @@ class _FeedScreenState extends State<FeedScreen> {
   bool _hideUI = false;
   bool _notificationsEnabled = false;
   String _widgetLanguage = 'english';
+  String _widgetMode = 'fixed';
+  String _themeMode = 'dark';
+  String _activeBackgroundImage = _darkBackgroundImage;
+  String? _pendingWidgetLaunchAction;
+  bool _isHandlingWidgetLaunchAction = false;
 
   @override
   void initState() {
     super.initState();
+    _widgetService.setLaunchActionHandler(_handleWidgetLaunchAction);
     _initializeScreen();
+  }
+
+  @override
+  void dispose() {
+    _widgetService.clearLaunchActionHandler();
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeScreen() async {
     await _loadPersistedState();
     await _loadVerses();
     await _loadNotificationState();
+    await _widgetService.setLanguage(_widgetLanguage);
+    await _widgetService.setMode(_widgetMode);
+    await _consumePendingWidgetLaunchAction();
   }
 
   Future<void> _loadPersistedState() async {
     final prefs = await SharedPreferences.getInstance();
     final rawWidgetLanguage = prefs.getString(_widgetLanguageKey);
+    final rawWidgetMode = prefs.getString(_widgetModeKey);
     final rawDisplayLanguage = prefs.getString(_displayLanguageKey);
+    final rawThemeMode = prefs.getString(_themeModeKey);
     final normalizedWidgetLanguage = _normalizeWidgetLanguage(
       rawWidgetLanguage,
     );
+    final normalizedWidgetMode = _normalizeWidgetMode(rawWidgetMode);
     final normalizedDisplayLanguage = _normalizeDisplayLanguage(
       rawDisplayLanguage,
     );
+    final normalizedThemeMode = _normalizeThemeMode(rawThemeMode);
+    final selectedBackground = _backgroundForTheme(normalizedThemeMode);
 
     if (!mounted) {
       return;
@@ -82,14 +107,25 @@ class _FeedScreenState extends State<FeedScreen> {
       _recentVerseIds = prefs.getStringList(_recentVerseIdsKey) ?? <String>[];
       _currentIndex = prefs.getInt(_lastReadIndexKey) ?? 0;
       _widgetLanguage = normalizedWidgetLanguage;
+      _widgetMode = normalizedWidgetMode;
       _displayLanguage = normalizedDisplayLanguage;
+      _themeMode = normalizedThemeMode;
+      _activeBackgroundImage = selectedBackground;
     });
 
-    if (rawWidgetLanguage != null && rawWidgetLanguage != normalizedWidgetLanguage) {
+    if (rawWidgetLanguage != null &&
+        rawWidgetLanguage != normalizedWidgetLanguage) {
       await prefs.setString(_widgetLanguageKey, normalizedWidgetLanguage);
     }
-    if (rawDisplayLanguage != null && rawDisplayLanguage != normalizedDisplayLanguage) {
+    if (rawWidgetMode != null && rawWidgetMode != normalizedWidgetMode) {
+      await prefs.setString(_widgetModeKey, normalizedWidgetMode);
+    }
+    if (rawDisplayLanguage != null &&
+        rawDisplayLanguage != normalizedDisplayLanguage) {
       await prefs.setString(_displayLanguageKey, normalizedDisplayLanguage);
+    }
+    if (rawThemeMode != null && rawThemeMode != normalizedThemeMode) {
+      await prefs.setString(_themeModeKey, normalizedThemeMode);
     }
   }
 
@@ -110,6 +146,22 @@ class _FeedScreenState extends State<FeedScreen> {
       return 'english';
     }
     return 'sanskrit';
+  }
+
+  String _normalizeWidgetMode(String? mode) {
+    final normalized = mode?.trim().toLowerCase();
+    if (normalized == 'random') {
+      return 'random';
+    }
+    return 'fixed';
+  }
+
+  String _normalizeThemeMode(String? mode) {
+    final normalized = mode?.trim().toLowerCase();
+    if (normalized == 'light') {
+      return 'light';
+    }
+    return 'dark';
   }
 
   String _languageDisplayName(String language) {
@@ -139,9 +191,19 @@ class _FeedScreenState extends State<FeedScreen> {
     await prefs.setString(_widgetLanguageKey, language);
   }
 
+  Future<void> _persistWidgetMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_widgetModeKey, mode);
+  }
+
   Future<void> _persistDisplayLanguage(String language) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_displayLanguageKey, language);
+  }
+
+  Future<void> _persistThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeModeKey, mode);
   }
 
   void _recordVerseInHistory(String verseId) {
@@ -166,15 +228,58 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  Future<void> _setNotifications(bool enabled) async {
+  Future<bool> _setNotifications(bool enabled) async {
     await NotificationService().toggleNotifications(enabled);
+    final actualEnabled = await NotificationService().areNotificationsEnabled();
     if (!mounted) {
-      return;
+      return actualEnabled;
     }
 
     setState(() {
-      _notificationsEnabled = enabled;
+      _notificationsEnabled = actualEnabled;
     });
+    return actualEnabled;
+  }
+
+  Future<void> _consumePendingWidgetLaunchAction() async {
+    final action = await _widgetService.consumeLaunchAction();
+    if (action == null || action.isEmpty) {
+      return;
+    }
+    await _handleWidgetLaunchAction(action);
+  }
+
+  Future<void> _handleWidgetLaunchAction(String action) async {
+    if (action != WidgetService.actionPickVerse) {
+      return;
+    }
+
+    if (_isLoading || _verses.isEmpty) {
+      _pendingWidgetLaunchAction = action;
+      return;
+    }
+
+    if (!mounted || _isHandlingWidgetLaunchAction) {
+      return;
+    }
+
+    _pendingWidgetLaunchAction = null;
+    _isHandlingWidgetLaunchAction = true;
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      if (!mounted) {
+        return;
+      }
+      if (_widgetMode == 'random') {
+        await _setWidgetMode('fixed');
+      }
+      await _showWidgetVersePicker(
+        title: 'Choose Verse For Widget',
+        subtitle: 'Opened from widget tap - ${_languageDisplayName(_widgetLanguage)}',
+      );
+    } finally {
+      _isHandlingWidgetLaunchAction = false;
+    }
   }
 
   Future<void> _loadVerses() async {
@@ -208,6 +313,11 @@ class _FeedScreenState extends State<FeedScreen> {
         _persistCurrentIndex(safeIndex);
         _recordChapterProgress(loadedVerses[safeIndex]);
       }
+
+      final pendingAction = _pendingWidgetLaunchAction;
+      if (pendingAction != null && pendingAction.isNotEmpty) {
+        await _handleWidgetLaunchAction(pendingAction);
+      }
     } catch (e) {
       debugPrint('Error loading verses: $e');
       if (!mounted) {
@@ -230,6 +340,12 @@ class _FeedScreenState extends State<FeedScreen> {
       return null;
     }
     return targetIndex;
+  }
+
+  String _backgroundForTheme(String mode) {
+    return _normalizeThemeMode(mode) == 'light'
+        ? _lightBackgroundImage
+        : _darkBackgroundImage;
   }
 
   Future<void> _recordChapterProgress(Verse verse) async {
@@ -328,6 +444,24 @@ class _FeedScreenState extends State<FeedScreen> {
     await _widgetService.setLanguage(normalized);
   }
 
+  Future<void> _setWidgetMode(String mode) async {
+    final normalized = _normalizeWidgetMode(mode);
+    setState(() {
+      _widgetMode = normalized;
+    });
+    await _persistWidgetMode(normalized);
+    await _widgetService.setMode(normalized);
+  }
+
+  Future<void> _setThemeMode(String mode) async {
+    final normalized = _normalizeThemeMode(mode);
+    setState(() {
+      _themeMode = normalized;
+      _activeBackgroundImage = _backgroundForTheme(normalized);
+    });
+    await _persistThemeMode(normalized);
+  }
+
   void _cycleDisplayLanguage() {
     final next = switch (_displayLanguage) {
       'sanskrit' => 'english',
@@ -375,6 +509,15 @@ class _FeedScreenState extends State<FeedScreen> {
         ),
       );
     }
+  }
+
+  void _openCurrentVerseDetails() {
+    if (_verses.isEmpty ||
+        _currentIndex < 0 ||
+        _currentIndex >= _verses.length) {
+      return;
+    }
+    VerseCard.showDetailsBottomSheet(context, _verses[_currentIndex]);
   }
 
   void _toggleSave(String id) {
@@ -591,7 +734,10 @@ class _FeedScreenState extends State<FeedScreen> {
     _jumpToVerseById(selectedVerseId);
   }
 
-  Future<void> _showWidgetVersePicker() async {
+  Future<void> _showWidgetVersePicker({
+    String? title,
+    String? subtitle,
+  }) async {
     final selectedVerseId = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -602,13 +748,16 @@ class _FeedScreenState extends State<FeedScreen> {
           verses: _verses,
           matchesSearchQuery: _matchesSearchQuery,
           initialChildSize: 0.8,
-          title: 'Choose Specific Verse',
-          subtitle: 'Widget language: ${_languageDisplayName(_widgetLanguage)}',
+          title: title ?? 'Choose Fixed Widget Verse',
+          subtitle:
+              subtitle ??
+              'Widget language: ${_languageDisplayName(_widgetLanguage)}',
           trailingIcon: const Icon(
             Icons.widgets_outlined,
             color: Colors.white70,
           ),
-          previewTextBuilder: (verse) => _textForLanguage(verse, _widgetLanguage),
+          previewTextBuilder: (verse) =>
+              _textForLanguage(verse, _widgetLanguage),
         );
       },
     );
@@ -623,6 +772,9 @@ class _FeedScreenState extends State<FeedScreen> {
     if (selectedIndex == -1) {
       return;
     }
+    if (_widgetMode != 'fixed') {
+      await _setWidgetMode('fixed');
+    }
     await _pinVerseToWidget(_verses[selectedIndex]);
   }
 
@@ -635,9 +787,13 @@ class _FeedScreenState extends State<FeedScreen> {
         pageBuilder: (_, animation, secondaryAnimation) => SettingsScreen(
           notificationsEnabled: _notificationsEnabled,
           widgetLanguage: _widgetLanguage,
+          widgetMode: _widgetMode,
+          themeMode: _themeMode,
           themeColor: accentColor,
           onNotificationsChanged: _setNotifications,
           onWidgetLanguageChanged: _setWidgetLanguage,
+          onWidgetModeChanged: _setWidgetMode,
+          onThemeModeChanged: _setThemeMode,
         ),
         transitionsBuilder: (_, animation, secondaryAnimation, child) {
           final fade = CurvedAnimation(
@@ -660,25 +816,25 @@ class _FeedScreenState extends State<FeedScreen> {
       return;
     }
 
-    await Future<void>.delayed(const Duration(milliseconds: 80));
+    // Wait for settings pop transition to fully settle before opening sheets.
+    await Future<void>.delayed(const Duration(milliseconds: 360));
     if (!mounted) {
       return;
     }
 
     if (action == SettingsAction.openBookmarks) {
-      _showSavedVerses(context);
-    } else if (action == SettingsAction.chooseWidgetVerse) {
-      _showWidgetVersePicker();
+      await _showSavedVerses(context);
     } else if (action == SettingsAction.openChapterProgress) {
-      _showChapterProgressSheet();
+      await _showChapterProgressSheet();
     }
   }
 
-  void _showSavedVerses(BuildContext parentContext) {
-    showModalBottomSheet(
+  Future<void> _showSavedVerses(BuildContext parentContext) async {
+    await showModalBottomSheet(
       context: parentContext,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
         return DraggableScrollableSheet(
           initialChildSize: 0.7,
@@ -814,6 +970,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Future<void> _showChapterProgressSheet() async {
     final chapterProgress = await _readingProgressService.loadChapterProgress();
+    final chapterReadIds = await _readingProgressService.loadChapterReadIds();
     if (!mounted) {
       return;
     }
@@ -875,7 +1032,9 @@ class _FeedScreenState extends State<FeedScreen> {
                         final chapter = chapters[index];
                         final chapterVerses = versesByChapter[chapter]!;
                         final total = chapterVerses.length;
-                        final readRaw = chapterProgress[chapter] ?? 0;
+                        final readIds = chapterReadIds[chapter] ?? <String>{};
+                        final readRaw =
+                            chapterProgress[chapter] ?? readIds.length;
                         final read = readRaw < 0
                             ? 0
                             : (readRaw > total ? total : readRaw);
@@ -939,7 +1098,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                         const SizedBox(width: 8),
                                     itemBuilder: (context, verseIndex) {
                                       final verse = chapterVerses[verseIndex];
-                                      final isRead = verse.verseNumber <= read;
+                                      final isRead = readIds.contains(verse.id);
                                       return InkWell(
                                         borderRadius: BorderRadius.circular(10),
                                         onTap: () => Navigator.of(
@@ -1003,10 +1162,116 @@ class _FeedScreenState extends State<FeedScreen> {
     _jumpToVerseById(selectedVerseId);
   }
 
+  Widget _buildAura(Color color, double size) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopLanguageButton() {
+    return GestureDetector(
+      onTap: _cycleDisplayLanguage,
+      child: GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        borderRadius: BorderRadius.circular(18),
+        opacity: 0.15,
+        blur: 18,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.translate, color: Colors.white, size: 17),
+            const SizedBox(width: 8),
+            Text(
+              _displayLanguageLabel(),
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassContainer(
+        padding: const EdgeInsets.all(9),
+        borderRadius: BorderRadius.circular(18),
+        opacity: 0.15,
+        blur: 18,
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLightTheme = _themeMode == 'light';
+    final loadingTopOverlay = isLightTheme
+        ? const Color(0x66000000)
+        : const Color(0xAA000000);
+    final loadingBottomOverlay = isLightTheme
+        ? const Color(0x88101824)
+        : const Color(0xCC101824);
+    final feedTopOverlay = isLightTheme
+        ? const Color(0x50000000)
+        : const Color(0x66000000);
+    final feedBottomOverlay = isLightTheme
+        ? const Color(0x18000000)
+        : const Color(0x22000000);
+
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image(
+                image: AssetImage(_activeBackgroundImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      loadingTopOverlay,
+                      loadingBottomOverlay,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Text(
+                'Loading verses...',
+                style: GoogleFonts.inter(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     if (_verses.isEmpty) {
@@ -1022,116 +1287,118 @@ class _FeedScreenState extends State<FeedScreen> {
       extendBodyBehindAppBar: true,
       body: RepaintBoundary(
         key: _globalKey,
-        child: Stack(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    currentBgColor.withValues(alpha: 0.8),
-                    currentBgColor.withValues(alpha: 0.3),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragEnd: (details) {
+            final velocity = details.primaryVelocity ?? 0;
+            if (velocity.abs() < 280) {
+              return;
+            }
+            _openCurrentVerseDetails();
+          },
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image(
+                  image: AssetImage(_activeBackgroundImage),
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
-            PageView.builder(
-              controller: _pageController,
-              scrollDirection: Axis.vertical,
-              itemCount: _verses.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-                _persistCurrentIndex(index);
-                _recordVerseInHistory(_verses[index].id);
-                _recordChapterProgress(_verses[index]);
-              },
-              itemBuilder: (context, index) {
-                final verse = _verses[index];
-                return VerseCard(
-                  verse: verse,
-                  displayLanguage: _displayLanguage,
-                  isSaved: _savedVerseIds.contains(verse.id),
-                  onSave: () => _toggleSave(verse.id),
-                  onShare: _shareCurrentScreen,
-                  hideUI: _hideUI,
-                );
-              },
-            ),
-            if (!_hideUI)
-              Positioned(
-                top: 60,
-                left: 20,
-                right: 20,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: _cycleDisplayLanguage,
-                      child: GlassContainer(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.translate,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _displayLanguageLabel(),
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [feedTopOverlay, feedBottomOverlay],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                  ),
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      currentBgColor.withValues(alpha: 0.18),
+                      currentBgColor.withValues(alpha: 0.06),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: -120,
+                right: -90,
+                child: _buildAura(currentBgColor.withValues(alpha: 0.28), 300),
+              ),
+              Positioned(
+                bottom: -140,
+                left: -100,
+                child: _buildAura(
+                  const Color(0xFFFFD27D).withValues(alpha: 0.22),
+                  330,
+                ),
+              ),
+              PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: _verses.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                  _persistCurrentIndex(index);
+                  _recordVerseInHistory(_verses[index].id);
+                  _recordChapterProgress(_verses[index]);
+                },
+                itemBuilder: (context, index) {
+                  final verse = _verses[index];
+                  return VerseCard(
+                    verse: verse,
+                    displayLanguage: _displayLanguage,
+                    isSaved: _savedVerseIds.contains(verse.id),
+                    onSave: () => _toggleSave(verse.id),
+                    onShare: _shareCurrentScreen,
+                    hideUI: _hideUI,
+                    showGestureHint: index == 0,
+                  );
+                },
+              ),
+              if (!_hideUI)
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  left: 16,
+                  right: 16,
+                  child: GlassContainer(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    opacity: 0.12,
+                    blur: 22,
+                    child: Row(
                       children: [
-                        GestureDetector(
+                        _buildTopLanguageButton(),
+                        const Spacer(),
+                        _buildTopIconButton(
+                          icon: Icons.menu_book_outlined,
                           onTap: _showChapterPickerSheet,
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(10),
-                            borderRadius: BorderRadius.circular(20),
-                            child: const Icon(
-                              Icons.menu_book_outlined,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
                         ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
+                        const SizedBox(width: 8),
+                        _buildTopIconButton(
+                          icon: Icons.settings_outlined,
                           onTap: _openSettingsPage,
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(10),
-                            borderRadius: BorderRadius.circular(20),
-                            child: const Icon(
-                              Icons.settings_outlined,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1448,7 +1715,8 @@ class _VerseSearchSheetState extends State<_VerseSearchSheet> {
                 ),
               ),
               subtitle: Text(
-                widget.previewTextBuilder?.call(verse) ?? verse.translationEnglish,
+                widget.previewTextBuilder?.call(verse) ??
+                    verse.translationEnglish,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(color: Colors.white70),
@@ -1517,8 +1785,7 @@ class _VerseSearchSheetState extends State<_VerseSearchSheet> {
                   style: GoogleFonts.inter(color: Colors.white),
                   onChanged: _updateQuery,
                   decoration: InputDecoration(
-                    hintText:
-                        'Search chapter, verse, Sanskrit, or English',
+                    hintText: 'Search chapter, verse, Sanskrit, or English',
                     hintStyle: GoogleFonts.inter(color: Colors.white70),
                     prefixIcon: const Icon(Icons.search, color: Colors.white70),
                     suffixIcon: _query.isEmpty

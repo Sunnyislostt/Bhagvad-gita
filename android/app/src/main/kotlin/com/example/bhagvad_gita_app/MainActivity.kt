@@ -1,18 +1,40 @@
 package com.example.bhagvad_gita_app
 
 import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private lateinit var widgetChannel: MethodChannel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cacheWidgetLaunchAction(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val action = cacheWidgetLaunchAction(intent)
+        if (!action.isNullOrBlank() && ::widgetChannel.isInitialized) {
+            widgetChannel.invokeMethod(
+                "onWidgetLaunchAction",
+                mapOf("action" to action),
+            )
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(
+        widgetChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL_NAME,
-        ).setMethodCallHandler { call, result ->
+        )
+        widgetChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "setVerseForWidget" -> {
                     val originalScript = call.argument<String>("originalScript")
@@ -52,6 +74,17 @@ class MainActivity : FlutterActivity() {
                     result.success(true)
                 }
 
+                "setWidgetMode" -> {
+                    val mode = sanitizeWidgetMode(call.argument<String>("mode"))
+                    saveWidgetMode(mode)
+                    VerseWidgetProvider.updateAll(this)
+                    result.success(true)
+                }
+
+                "consumeWidgetLaunchAction" -> {
+                    result.success(consumeWidgetLaunchAction())
+                }
+
                 else -> result.notImplemented()
             }
         }
@@ -61,6 +94,13 @@ class MainActivity : FlutterActivity() {
         return when (rawLanguage) {
             "sanskrit" -> "sanskrit"
             else -> "english"
+        }
+    }
+
+    private fun sanitizeWidgetMode(rawMode: String?): String {
+        return when (rawMode) {
+            "random" -> "random"
+            else -> "fixed"
         }
     }
 
@@ -79,6 +119,7 @@ class MainActivity : FlutterActivity() {
             .putInt(KEY_CHAPTER, chapter)
             .putInt(KEY_VERSE_NUMBER, verseNumber)
             .putString(KEY_DISPLAY_LANGUAGE, displayLanguage)
+            .putString(KEY_WIDGET_MODE, MODE_FIXED)
             .apply()
     }
 
@@ -87,6 +128,34 @@ class MainActivity : FlutterActivity() {
         prefs.edit()
             .putString(KEY_DISPLAY_LANGUAGE, displayLanguage)
             .apply()
+    }
+
+    private fun saveWidgetMode(mode: String) {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_WIDGET_MODE, mode)
+            .apply()
+    }
+
+    private fun cacheWidgetLaunchAction(intent: Intent?): String? {
+        val action = intent?.getStringExtra(EXTRA_WIDGET_ACTION)?.trim().orEmpty()
+        if (action.isBlank()) {
+            return null
+        }
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_PENDING_WIDGET_ACTION, action)
+            .apply()
+        return action
+    }
+
+    private fun consumeWidgetLaunchAction(): String? {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val action = prefs.getString(KEY_PENDING_WIDGET_ACTION, null)
+        if (!action.isNullOrBlank()) {
+            prefs.edit().remove(KEY_PENDING_WIDGET_ACTION).apply()
+        }
+        return action
     }
 
     companion object {
@@ -98,5 +167,13 @@ class MainActivity : FlutterActivity() {
         const val KEY_CHAPTER = "chapter"
         const val KEY_VERSE_NUMBER = "verse_number"
         const val KEY_DISPLAY_LANGUAGE = "display_language"
+        const val KEY_WIDGET_MODE = "widget_mode"
+        const val KEY_PENDING_WIDGET_ACTION = "pending_widget_action"
+
+        const val MODE_FIXED = "fixed"
+        const val MODE_RANDOM = "random"
+
+        const val EXTRA_WIDGET_ACTION = "extra_widget_action"
+        const val ACTION_PICK_VERSE = "pick_verse"
     }
 }

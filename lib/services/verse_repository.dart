@@ -20,8 +20,13 @@ class VerseRepository {
 
   Future<List<Verse>> _loadVerseListFromAsset(String assetPath) async {
     try {
+      // Prevent stale cached bytes when dataset is updated during development.
+      rootBundle.evict(assetPath);
       final rawData = await rootBundle.load(assetPath);
-      final bytes = rawData.buffer.asUint8List(rawData.offsetInBytes, rawData.lengthInBytes);
+      final bytes = rawData.buffer.asUint8List(
+        rawData.offsetInBytes,
+        rawData.lengthInBytes,
+      );
       final decoded = _decodeJson(bytes);
       final list = _extractJsonList(decoded);
       return list
@@ -66,6 +71,7 @@ class VerseRepository {
 
     return const <dynamic>[];
   }
+
   static int _sortByChapterAndVerse(Verse a, Verse b) {
     final chapterCompare = a.chapter.compareTo(b.chapter);
     if (chapterCompare != 0) {

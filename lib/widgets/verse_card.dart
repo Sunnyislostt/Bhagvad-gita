@@ -10,6 +10,7 @@ class VerseCard extends StatelessWidget {
   final VoidCallback onSave;
   final VoidCallback onShare;
   final bool hideUI;
+  final bool showGestureHint;
 
   const VerseCard({
     super.key,
@@ -19,6 +20,7 @@ class VerseCard extends StatelessWidget {
     required this.onSave,
     required this.onShare,
     this.hideUI = false,
+    this.showGestureHint = false,
   });
 
   static void showDetailsBottomSheet(BuildContext context, Verse verse) {
@@ -33,7 +35,9 @@ class VerseCard extends StatelessWidget {
           maxChildSize: 0.95,
           builder: (context, scrollController) {
             return GlassContainer(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(30),
+              ),
               opacity: 0.15,
               blur: 25,
               child: ListView(
@@ -53,7 +57,10 @@ class VerseCard extends StatelessWidget {
                   ),
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -106,6 +113,19 @@ class VerseCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   _divider(),
                   const SizedBox(height: 8),
+                  _sectionLabel('Deep Dive'),
+                  const SizedBox(height: 10),
+                  Text(
+                    verse.deepDiveText,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: Colors.white70,
+                      height: 1.7,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _divider(),
+                  const SizedBox(height: 8),
                   if (verse.wordMeanings.trim().isNotEmpty) ...[
                     _sectionLabel('Word Meanings'),
                     const SizedBox(height: 10),
@@ -130,19 +150,6 @@ class VerseCard extends StatelessWidget {
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
                       height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _divider(),
-                  const SizedBox(height: 8),
-                  _sectionLabel('Deep Dive'),
-                  const SizedBox(height: 10),
-                  Text(
-                    verse.deepDiveText,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      color: Colors.white70,
-                      height: 1.7,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -181,85 +188,122 @@ class VerseCard extends StatelessWidget {
   }
 
   static Widget _divider() {
-    return Container(
-      height: 1,
-      color: Colors.white.withValues(alpha: 0.08),
-    );
+    return Container(height: 1, color: Colors.white.withValues(alpha: 0.08));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
+    final media = MediaQuery.of(context);
+    final isCompactHeight = media.size.height < 700;
+    final topInset = media.padding.top + (isCompactHeight ? 62 : 72);
+    final bottomInset = media.padding.bottom + 8;
+
+    return Padding(
       padding: EdgeInsets.only(
-        left: 24.0,
-        right: 24.0,
-        top: MediaQuery.of(context).padding.top + 80,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        left: 20,
+        right: 20,
+        top: topInset,
+        bottom: bottomInset,
       ),
       child: Column(
         children: [
           Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: GlassContainer(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availableHeight = constraints.maxHeight;
+                final showHint = showGestureHint && availableHeight > 420;
+
+                return SizedBox(
+                  width: double.infinity,
+                  height: availableHeight,
+                  child: GlassContainer(
+                    opacity: 0.0,
+                    blur: 0.0,
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              'Chapter ${verse.chapter} - Verse ${verse.verseNumber}',
-                              style: GoogleFonts.inter(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1.2,
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () =>
+                                  showDetailsBottomSheet(context, verse),
+                              child: GlassContainer(
+                                width: 36,
+                                height: 36,
+                                borderRadius: BorderRadius.circular(18),
+                                padding: EdgeInsets.zero,
+                                child: const Icon(
+                                  Icons.info_outline,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 32),
-                            Text(
-                              _primaryText(),
-                              textAlign: TextAlign.center,
-                              style: _primaryTextStyle(),
                             ),
                           ],
                         ),
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => showDetailsBottomSheet(context, verse),
-                          child: GlassContainer(
-                            width: 36,
-                            height: 36,
-                            borderRadius: BorderRadius.circular(18),
-                            padding: EdgeInsets.zero,
-                            child: const Icon(
-                              Icons.info_outline,
-                              color: Colors.white,
-                              size: 18,
+                        const SizedBox(height: 6),
+                        Text(
+                          'Chapter ${verse.chapter} - Verse ${verse.verseNumber}',
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.82),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: availableHeight > 540 ? 22 : 14),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              _primaryText(),
+                              textAlign: TextAlign.center,
+                              style: _primaryTextStyle(),
+                              maxLines: _primaryMaxLines(availableHeight),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        if (showHint) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.16),
+                              ),
+                            ),
+                            child: Text(
+                              'Swipe up/down for verses - swipe left/right for details',
+                              style: GoogleFonts.inter(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           if (!hideUI)
             Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 10,
                 children: [
                   _ActionButton(
                     icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
@@ -298,10 +342,33 @@ class VerseCard extends StatelessWidget {
 
     return GoogleFonts.inter(
       color: Colors.white,
-      fontSize: 22,
+      fontSize: 21,
       height: 1.6,
       fontWeight: FontWeight.w500,
     );
+  }
+
+  int _primaryMaxLines(double availableHeight) {
+    if (displayLanguage == 'english') {
+      if (availableHeight < 430) {
+        return 5;
+      }
+      if (availableHeight < 520) {
+        return 7;
+      }
+      if (availableHeight < 620) {
+        return 9;
+      }
+      return 11;
+    }
+
+    if (availableHeight < 430) {
+      return 4;
+    }
+    if (availableHeight < 520) {
+      return 6;
+    }
+    return 8;
   }
 }
 
@@ -320,26 +387,26 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GlassContainer(
-            width: 50,
-            height: 50,
-            borderRadius: BorderRadius.circular(25),
-            padding: EdgeInsets.zero,
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+      child: GlassContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        borderRadius: BorderRadius.circular(28),
+        opacity: 0.15,
+        blur: 18,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

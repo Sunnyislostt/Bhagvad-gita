@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -16,10 +15,8 @@ class NotificationService {
 
   static const String _prefKey = 'notifications_enabled';
   static const int _daysToSchedule = 30;
-  static const int _todayBaseNotificationId = 1000;
-  static const int _randomBaseNotificationId = 2000;
-  static const int _todaysVerseHour = 8;
-  static const int _randomVerseHour = 20;
+  static const int _dailyBaseNotificationId = 1000;
+  static const int _dailyVerseHour = 8;
 
   bool _timeZonesInitialized = false;
 
@@ -29,6 +26,13 @@ class NotificationService {
     await _plugin.initialize(settings: initSettings);
 
     if (await areNotificationsEnabled()) {
+      final hasPermission = await _ensureNotificationPermission();
+      if (!hasPermission) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_prefKey, false);
+        await _plugin.cancelAll();
+        return;
+      }
       await _scheduleDailyNotifications();
     }
   }
@@ -40,13 +44,43 @@ class NotificationService {
 
   Future<void> toggleNotifications(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefKey, enabled);
 
     if (enabled) {
+      final hasPermission = await _ensureNotificationPermission();
+      if (!hasPermission) {
+        await prefs.setBool(_prefKey, false);
+        await _plugin.cancelAll();
+        return;
+      }
+      await prefs.setBool(_prefKey, true);
       await _scheduleDailyNotifications();
     } else {
+      await prefs.setBool(_prefKey, false);
       await _plugin.cancelAll();
     }
+  }
+
+  Future<bool> _ensureNotificationPermission() async {
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin == null) {
+      return true;
+    }
+
+    final currentlyEnabled = await androidPlugin.areNotificationsEnabled();
+    if (currentlyEnabled ?? true) {
+      return true;
+    }
+
+    final requested = await androidPlugin.requestNotificationsPermission();
+    if (requested == true) {
+      return true;
+    }
+
+    final afterRequest = await androidPlugin.areNotificationsEnabled();
+    return afterRequest ?? false;
   }
 
   void _initializeTimeZones() {
@@ -79,38 +113,20 @@ class NotificationService {
     final now = DateTime.now();
     for (var dayOffset = 0; dayOffset < _daysToSchedule; dayOffset++) {
       final date = DateTime(now.year, now.month, now.day + dayOffset);
-      final todaysVerse = _getTodaysVerse(verses, date);
-      final randomVerse = _getRandomVerseForDate(verses, date, excludeId: todaysVerse.id);
-
-      final todaysVerseTime = DateTime(
+      final dailyVerse = _getTodaysVerse(verses, date);
+      final dailyVerseTime = DateTime(
         date.year,
         date.month,
         date.day,
-        _todaysVerseHour,
-      );
-      final randomVerseTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        _randomVerseHour,
+        _dailyVerseHour,
       );
 
-      if (todaysVerseTime.isAfter(now)) {
+      if (dailyVerseTime.isAfter(now)) {
         await _scheduleNotification(
-          id: _todayBaseNotificationId + dayOffset,
-          title: "Today's Verse - Ch.${todaysVerse.chapter}, V.${todaysVerse.verseNumber}",
-          verse: todaysVerse,
-          scheduledAt: todaysVerseTime,
-          notificationDetails: notificationDetails,
-        );
-      }
-
-      if (randomVerseTime.isAfter(now)) {
-        await _scheduleNotification(
-          id: _randomBaseNotificationId + dayOffset,
-          title: "Random Verse - Ch.${randomVerse.chapter}, V.${randomVerse.verseNumber}",
-          verse: randomVerse,
-          scheduledAt: randomVerseTime,
+          id: _dailyBaseNotificationId + dayOffset,
+          title: "Daily Verse - Ch.${dailyVerse.chapter}, V.${dailyVerse.verseNumber}",
+          verse: dailyVerse,
+          scheduledAt: dailyVerseTime,
           notificationDetails: notificationDetails,
         );
       }
@@ -136,23 +152,6 @@ class NotificationService {
 
   Verse _getTodaysVerse(List<Verse> verses, DateTime date) {
     final index = _daySeed(date) % verses.length;
-    return verses[index];
-  }
-
-  Verse _getRandomVerseForDate(
-    List<Verse> verses,
-    DateTime date, {
-    String? excludeId,
-  }) {
-    if (verses.length == 1) {
-      return verses.first;
-    }
-
-    final random = Random((_daySeed(date) * 31) + 7);
-    var index = random.nextInt(verses.length);
-    if (excludeId != null && verses[index].id == excludeId) {
-      index = (index + 1) % verses.length;
-    }
     return verses[index];
   }
 

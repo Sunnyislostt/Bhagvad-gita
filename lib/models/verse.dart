@@ -22,14 +22,20 @@ class Verse {
   });
 
   factory Verse.fromJson(Map<String, dynamic> json) {
-    final chapter = _asInt(json['chapter'] ?? json['chapter_number'] ?? json['chapter_id']);
-    final verseNumber = _asInt(json['verse_number'] ?? json['verse_id'] ?? json['verse']);
+    final chapter = _asInt(
+      json['chapter'] ?? json['chapter_number'] ?? json['chapter_id'],
+    );
+    final verseNumber = _asInt(
+      json['verse_number'] ?? json['verse_id'] ?? json['verse'],
+    );
     final fallbackId = canonicalId(chapter, verseNumber);
 
     final originalScript = _asString(json['original_script'] ?? json['text']);
     final transliteration = _asString(json['transliteration']);
     final wordMeanings = _asString(json['word_meanings']);
-    final translationEnglish = _asString(json['translation_english'] ?? json['translation']);
+    final translationEnglish = _asString(
+      json['translation_english'] ?? json['translation'],
+    );
     final deepDiveText = _asString(json['deep_dive_text']);
 
     return Verse(
@@ -38,9 +44,16 @@ class Verse {
       verseNumber: verseNumber,
       originalScript: originalScript,
       transliteration: transliteration,
-      translationEnglish: translationEnglish.isNotEmpty ? translationEnglish : _fallbackTranslation(wordMeanings),
-      deepDiveText: deepDiveText.isNotEmpty ? deepDiveText : _fallbackDeepDive(wordMeanings),
-      backgroundHexColor: _normalizeBackgroundColor(json['background_hex_color'], chapter),
+      translationEnglish: translationEnglish.isNotEmpty
+          ? translationEnglish
+          : _fallbackTranslation(wordMeanings),
+      deepDiveText: deepDiveText.isNotEmpty
+          ? deepDiveText
+          : _fallbackDeepDive(wordMeanings),
+      backgroundHexColor: _normalizeBackgroundColor(
+        json['background_hex_color'],
+        chapter,
+      ),
       wordMeanings: wordMeanings,
     );
   }
@@ -85,7 +98,18 @@ class Verse {
       return value.toInt();
     }
     if (value is String) {
-      return int.tryParse(value) ?? 0;
+      final trimmed = value.trim();
+      final exact = int.tryParse(trimmed);
+      if (exact != null) {
+        return exact;
+      }
+
+      // Supports source formats like "5-6" by taking the first numeric part.
+      final firstNumericPart = RegExp(r'-?\d+').firstMatch(trimmed)?.group(0);
+      if (firstNumericPart != null) {
+        return int.tryParse(firstNumericPart) ?? 0;
+      }
+      return 0;
     }
     return 0;
   }
