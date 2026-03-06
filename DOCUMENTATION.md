@@ -23,7 +23,7 @@ Bhagvad Gita App is a Flutter app with a feed-first resume flow:
 - `lib/models/verse.dart`: verse model and JSON normalization
 - `lib/screens/chapters_home_screen.dart`: chapter landing page + overall/chapter progress
 - `lib/screens/feed_screen.dart`: vertical feed, search sheets, settings flow, bookmarks sheet
-- `lib/screens/settings_screen.dart`: settings UI and `SettingsAction` return values
+- `lib/screens/settings_screen.dart`: settings UI and in-settings action handlers
 - `lib/services/verse_repository.dart`: asset loading/parsing/sorting
 - `lib/services/reading_progress_service.dart`: chapter progress persistence
 - `lib/services/notification_service.dart`: notification scheduling/toggle
@@ -40,6 +40,7 @@ Bhagvad Gita App is a Flutter app with a feed-first resume flow:
 - `id`
 - `chapter`
 - `verseNumber`
+- `verseLabel`
 - `originalScript`
 - `transliteration`
 - `wordMeanings`
@@ -50,27 +51,28 @@ Bhagvad Gita App is a Flutter app with a feed-first resume flow:
 `Verse.fromJson` supports multiple source key variants and normalizes:
 - IDs (`BG_CC_VV` fallback)
 - chapter/verse numbers
-- verse ranges in `verse_number` (for example `"5-6"` parses as `5` for ordering/progress)
+- verse ranges in `verse_number` (for example `"5-6"` parses as `5` for ordering/progress, while preserving `"5-6"` for display)
 - background color fallback palette
 - fallback translation/deep-dive text
 
 ## 5. Current Dataset State
 Source: `assets/data/verses.json`
 
-- Total entries: **622**
-- Non-summary verse rows: **604**
-- Summary/recap rows (`verse_number = 0`): **18**
-- Grouped/range verse rows (`verse_number = "x-y"`): **9**
-- Chapter coverage: **1 to 17** (currently up to **17.8**)
+- Total entries: **715**
+- Non-summary verse rows: **696**
+- Summary/recap rows (`verse_number = 0`): **19**
+- Grouped/range verse rows (`verse_number = "x-y"`): **10**
+- Chapter coverage: **1 to 18**
+- Canonical Bhagavad Gita structure: **18 chapters** and **700 verses**
 
 Per chapter:
 - Chapter 1: 49 entries (max verse 48)
 - Chapter 2: 74 entries (max verse 73)
-- Chapter 3: 43 entries (max verse 44)
+- Chapter 3: 45 entries (max verse 44)
 - Chapter 4: 43 entries (max verse 42)
-- Chapter 5: 31 entries (max verse 29)
+- Chapter 5: 30 entries (max verse 29)
 - Chapter 6: 48 entries (max verse 47)
-- Chapter 7: 33 entries (max verse 24)
+- Chapter 7: 25 entries (max verse 24)
 - Chapter 8: 29 entries (max verse 28)
 - Chapter 9: 36 entries (max verse 35)
 - Chapter 10: 43 entries (max verse 43)
@@ -80,7 +82,8 @@ Per chapter:
 - Chapter 14: 28 entries (max verse 28)
 - Chapter 15: 21 entries (max verse 21)
 - Chapter 16: 26 entries (max verse 25)
-- Chapter 17: 8 entries (max verse 8)
+- Chapter 17: 29 entries (max verse 29)
+- Chapter 18: 79 entries (max verse 78)
 
 ## 6. Chapter Home Screen
 `ChaptersHomeScreen`:
@@ -105,14 +108,14 @@ Per chapter:
 ### Overflow-safe card layout
 - Verse card uses adaptive/flexible layout for compact heights
 - Action buttons use wrapping layout to avoid bottom overflow
+- Long verse text now tries smaller font sizes first and falls back to scrolling instead of truncating with ellipsis.
 - Main verse reading surface is transparent (no blur card), so background artwork remains visible.
 
 ### Background rendering
 - Theme is user-selectable (`light` / `dark`) from Settings and persisted in SharedPreferences.
-- Feed background is selected from theme-specific image pools:
-  - Dark: `assets/images/dark.jpeg`, `assets/images/dark (2).jpeg`
-  - Light: `assets/images/light.jpeg`, `assets/images/light (2).jpeg`
-- On app start, one image is selected from the active theme pool with non-repeating immediate rotation logic.
+- Feed background is selected directly by active theme:
+  - Dark: `assets/images/dark.jpeg`
+  - Light: `assets/images/light.jpeg`
 - A theme-aware scrim plus dynamic chapter/verse color tint are layered on top for readability and visual continuity.
 
 ### Reading progress and history
@@ -121,10 +124,13 @@ Per chapter:
   - recent verse IDs
   - chapter progress
 - Chapter progress now tracks exact visited verse IDs per chapter, so read chips are based on actual visited verses (not inferred by highest verse number).
+- Summary/recap rows (`verse_number = 0`) are excluded from chapter and overall progress totals.
+- Range verse labels such as `4-5` are preserved in the UI even though ordering/progress still use the first numeric value.
 
 ### Search and jump
 - Search supports chapter/verse pattern, ID, Sanskrit, transliteration, English
 - Chapter-and-verse picker supports direct navigation
+- Picker verse chips are responsive so non-numeric labels such as `Summary` and `Recap` fit without overflow.
 - Results are grouped by chapter
 
 ### Bookmarks
@@ -149,17 +155,20 @@ Sections:
 - Bookmarks
 
 Navigation behavior:
-- Settings returns `SettingsAction`
-- `FeedScreen` handles returned action and opens the selected sheet/flow (bookmarks/chapter progress)
-- A short post-pop handoff delay is used before opening sheets to avoid route-transition race issues
+- Settings can open Bookmarks and Chapter Progress sheets directly without forcing a route pop back to feed.
+- Fixed widget verse can be selected directly from Settings (and also from home-screen widget tap).
+- The fixed widget picker uses in-sheet chapter chips and verse chips instead of long dropdown lists.
+- Notification settings copy is simplified to `Notifications` / `Verse reminders`.
 
 ## 9. Notification Service
 - Persists enabled state in SharedPreferences
 - Schedules 30 days ahead
-- One notification per day:
-  - 08:00 "Daily Verse"
+- Two notifications per day:
+  - 08:00 "Morning Verse"
+  - 18:00 "Evening Verse"
 - Requests Android notification permission when enabling notifications
 - Uses repository-loaded verse list
+- Notification taps open the exact verse from the payload without replacing the user's saved last-read position.
 
 ## 10. Widget Integration (Android)
 MethodChannel: `bhagvad_gita_app/widget`
@@ -168,6 +177,7 @@ Supported operations:
 - `setVerseForWidget`
 - `setWidgetLanguage`
 - `setWidgetMode`
+- `setWidgetTheme`
 - `consumeWidgetLaunchAction`
 - native -> Flutter callback: `onWidgetLaunchAction`
 
@@ -179,14 +189,17 @@ Widget behavior:
 - In `random` mode:
   - tap widget refreshes a random verse
 - Text language follows widget language setting (`sanskrit`/`english`)
-- Footer action opens the app
+- Widget background and verse surface styling follow the app's saved light/dark theme.
+- Widget verse/reference text is rendered in white for readability across themes.
+- Range verse references such as `4-5` are preserved in widget labels.
 
 ## 11. Data Update Workflow
 When updating `assets/data/verses.json`:
 1. Keep schema fields consistent (`id`, `chapter`, `verse_number`, etc.)
 2. `verse_number` can be an integer (`17`) or grouped range string (`"5-6"`).
-3. Ensure valid JSON
-4. Rebuild app to avoid stale asset cache:
+3. Range strings are displayed as-is in the UI, while the first numeric value is still used for ordering/progress.
+4. Ensure valid JSON
+5. Rebuild app to avoid stale asset cache:
 
 ```bash
 flutter clean
@@ -203,17 +216,21 @@ After code/data changes:
 Manual checks:
 - On cold start, app opens directly in feed at last-read verse
 - Theme mode is restored after restart
-- Background image rotates within active theme pool after restart
+- Background image matches selected theme after restart
+- Widget background updates when app theme changes
 - Chapter home (if opened) loads and opens each chapter
-- Feed can scroll through the extended dataset (Chapters 1-17)
+- Feed can scroll through the full dataset (Chapters 1-18)
 - Horizontal swipe and info icon open the same details sheet
 - Swipe guidance hint appears only on the first verse card
 - Settings -> Bookmarks opens bookmark list (does not drop to home unexpectedly)
 - Chapter progress sheet opens and verse taps jump correctly
 - Tapping an unread verse in chapter progress should not mark earlier verses as read by color
-- Range rows (e.g., verse `5-6`) appear in correct chapter order
+- Range rows (e.g., verse `5-6`) appear in correct chapter order and display their full label in the home/progress/widget UI
+- Summary/Recap chips fit correctly in the chapter/verse picker
 - No bottom `RenderFlex` overflow on small-height devices
-- One daily notification is scheduled when enabled
+- Long verses remain readable without `...` truncation on the main card
+- Morning and evening notifications are scheduled when enabled
+- Notification tap opens the exact verse without changing the saved last-read position
 - Widget fixed/random mode flows still work
 
 ## 13. Future Feature Proposal: Chapter Lessons
@@ -252,3 +269,41 @@ Upcoming focus areas:
 - Settings page UI improvement:
   - Refine section organization and interaction affordances.
   - Improve visual consistency with the feed's updated design direction.
+
+## 15. Planned UX Work: Onboarding
+Recommended onboarding approach:
+- Keep onboarding short and focused.
+- Use a 4-screen flow instead of a long tutorial.
+- Match the app's background-image-led visual language instead of generic illustrations.
+
+Proposed flow:
+1. Welcome
+   - Title: `Bhagavad Gita, one verse at a time`
+   - Message: introduce the feed-first reading experience and resume flow
+   - CTA: `Begin`
+2. How It Works
+   - Show the main gestures:
+     - swipe up/down to move through verses
+     - swipe sideways or tap info for details
+     - save and share verses
+   - CTA: `Continue`
+3. Personalize
+   - Let the user choose initial reading preferences:
+     - Sanskrit or English
+     - optional Light / Dark preview
+   - CTA: `Set preferences`
+4. Daily Practice
+   - Explain morning/evening reminders and Android widget support
+   - Actions:
+     - `Enable notifications`
+     - `Maybe later`
+   - Note that widget setup can be done later from Settings
+   - CTA: `Open app`
+
+Design guidelines:
+- Use large typography, minimal copy, and one primary CTA per screen.
+- Keep the tone calm and practical rather than overly decorative.
+- Add a simple progress indicator such as `1 / 4`.
+- Do not ask for unnecessary permissions early.
+- Request notification permission only when the notifications step is shown.
+- Do not force widget setup during onboarding.

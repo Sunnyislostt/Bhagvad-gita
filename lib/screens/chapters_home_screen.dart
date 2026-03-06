@@ -18,7 +18,7 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
   final ReadingProgressService _progressService = ReadingProgressService();
 
   List<Verse> _verses = <Verse>[];
-  Map<int, int> _chapterProgress = <int, int>{};
+  Map<int, Set<String>> _chapterReadIds = <int, Set<String>>{};
   bool _isLoading = true;
 
   @override
@@ -29,14 +29,14 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
 
   Future<void> _loadData() async {
     final verses = await _verseRepository.loadVerses();
-    final progress = await _progressService.loadChapterProgress();
+    final chapterReadIds = await _progressService.loadChapterReadIds();
     if (!mounted) {
       return;
     }
 
     setState(() {
       _verses = verses;
-      _chapterProgress = progress;
+      _chapterReadIds = chapterReadIds;
       _isLoading = false;
     });
   }
@@ -44,6 +44,20 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
   Map<int, List<Verse>> get _versesByChapter {
     final grouped = <int, List<Verse>>{};
     for (final verse in _verses) {
+      grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
+    }
+    for (final entry in grouped.entries) {
+      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+    }
+    return grouped;
+  }
+
+  Map<int, List<Verse>> get _progressVersesByChapter {
+    final grouped = <int, List<Verse>>{};
+    for (final verse in _verses) {
+      if (verse.verseNumber <= 0) {
+        continue;
+      }
       grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
     }
     for (final entry in grouped.entries) {
@@ -72,18 +86,22 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final grouped = _versesByChapter;
+    final grouped = _progressVersesByChapter;
     final chapters = grouped.keys.toList()..sort();
     final readTotal = chapters.fold<int>(
       0,
       (sum, chapter) {
-        final total = grouped[chapter]!.length;
-        final readRaw = _chapterProgress[chapter] ?? 0;
-        final read = readRaw < 0 ? 0 : (readRaw > total ? total : readRaw);
+        final chapterVerses = grouped[chapter]!;
+        final read = chapterVerses
+            .where((verse) => (_chapterReadIds[chapter] ?? <String>{}).contains(verse.id))
+            .length;
         return sum + read;
       },
     );
-    final totalVerses = _verses.length;
+    final totalVerses = grouped.values.fold<int>(
+      0,
+      (sum, verses) => sum + verses.length,
+    );
     final overallProgress = totalVerses == 0 ? 0.0 : readTotal / totalVerses;
 
     return Scaffold(
@@ -172,8 +190,12 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
                             final chapter = chapters[index];
                             final chapterVerses = grouped[chapter]!;
                             final total = chapterVerses.length;
-                            final readRaw = _chapterProgress[chapter] ?? 0;
-                            final read = readRaw < 0 ? 0 : (readRaw > total ? total : readRaw);
+                            final read = chapterVerses
+                                .where(
+                                  (verse) =>
+                                      (_chapterReadIds[chapter] ?? <String>{}).contains(verse.id),
+                                )
+                                .length;
                             final progress = total == 0 ? 0.0 : read / total;
 
                             return GestureDetector(

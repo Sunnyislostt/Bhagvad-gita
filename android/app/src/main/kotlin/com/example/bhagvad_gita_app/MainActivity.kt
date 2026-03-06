@@ -41,6 +41,7 @@ class MainActivity : FlutterActivity() {
                     val translationEnglish = call.argument<String>("translationEnglish")
                     val chapter = call.argument<Int>("chapter") ?: 0
                     val verseNumber = call.argument<Int>("verseNumber") ?: 0
+                    val verseLabel = call.argument<String>("verseLabel").orEmpty()
                     val displayLanguage = sanitizeLanguage(
                         call.argument<String>("displayLanguage"),
                     )
@@ -59,6 +60,7 @@ class MainActivity : FlutterActivity() {
                         translationEnglish = translationEnglish,
                         chapter = chapter,
                         verseNumber = verseNumber,
+                        verseLabel = verseLabel,
                         displayLanguage = displayLanguage,
                     )
                     VerseWidgetProvider.updateAll(this)
@@ -77,6 +79,13 @@ class MainActivity : FlutterActivity() {
                 "setWidgetMode" -> {
                     val mode = sanitizeWidgetMode(call.argument<String>("mode"))
                     saveWidgetMode(mode)
+                    VerseWidgetProvider.updateAll(this)
+                    result.success(true)
+                }
+
+                "setWidgetTheme" -> {
+                    val themeMode = sanitizeThemeMode(call.argument<String>("themeMode"))
+                    saveWidgetTheme(themeMode)
                     VerseWidgetProvider.updateAll(this)
                     result.success(true)
                 }
@@ -104,11 +113,19 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun sanitizeThemeMode(rawThemeMode: String?): String {
+        return when (rawThemeMode) {
+            THEME_LIGHT -> THEME_LIGHT
+            else -> THEME_DARK
+        }
+    }
+
     private fun saveVerseForWidget(
         originalScript: String,
         translationEnglish: String,
         chapter: Int,
         verseNumber: Int,
+        verseLabel: String,
         displayLanguage: String,
     ) {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -118,6 +135,7 @@ class MainActivity : FlutterActivity() {
             .putString(KEY_TRANSLATION_ENGLISH, translationEnglish)
             .putInt(KEY_CHAPTER, chapter)
             .putInt(KEY_VERSE_NUMBER, verseNumber)
+            .putString(KEY_VERSE_LABEL, verseLabel.ifBlank { verseNumber.toString() })
             .putString(KEY_DISPLAY_LANGUAGE, displayLanguage)
             .putString(KEY_WIDGET_MODE, MODE_FIXED)
             .apply()
@@ -134,6 +152,13 @@ class MainActivity : FlutterActivity() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(KEY_WIDGET_MODE, mode)
+            .apply()
+    }
+
+    private fun saveWidgetTheme(themeMode: String) {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_THEME_MODE, themeMode)
             .apply()
     }
 
@@ -166,12 +191,16 @@ class MainActivity : FlutterActivity() {
         const val KEY_TRANSLATION_ENGLISH = "translation_english"
         const val KEY_CHAPTER = "chapter"
         const val KEY_VERSE_NUMBER = "verse_number"
+        const val KEY_VERSE_LABEL = "verse_label"
         const val KEY_DISPLAY_LANGUAGE = "display_language"
         const val KEY_WIDGET_MODE = "widget_mode"
+        const val KEY_THEME_MODE = "theme_mode"
         const val KEY_PENDING_WIDGET_ACTION = "pending_widget_action"
 
         const val MODE_FIXED = "fixed"
         const val MODE_RANDOM = "random"
+        const val THEME_LIGHT = "light"
+        const val THEME_DARK = "dark"
 
         const val EXTRA_WIDGET_ACTION = "extra_widget_action"
         const val ACTION_PICK_VERSE = "pick_verse"

@@ -2,20 +2,20 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <bitmap
-            android:gravity="fill"
-            android:src="@drawable/widget_bg_dark" />
+            android:gravity="center"
+            android:src="@drawable/widget_bg_light" />
     </item>
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="26dp" />
             <gradient
                 android:angle="320"
-                android:startColor="#28131C2E"
-                android:centerColor="#221B314D"
-                android:endColor="#28162B46" />
+                android:startColor="#1AF7E7CB"
+                android:centerColor="#18E3D1B2"
+                android:endColor="#14CDB48D" />
             <stroke
                 android:width="1dp"
-                android:color="#88FFFFFF" />
+                android:color="#66FFFFFF" />
         </shape>
     </item>
 </layer-list>

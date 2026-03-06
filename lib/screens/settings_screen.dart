@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/glass_container.dart';
 
-enum SettingsAction { openBookmarks, openChapterProgress }
-
 class SettingsScreen extends StatefulWidget {
   final bool notificationsEnabled;
   final String widgetLanguage;
   final String widgetMode;
   final String themeMode;
-  final Color themeColor;
   final Future<bool> Function(bool enabled) onNotificationsChanged;
   final Future<void> Function(String language) onWidgetLanguageChanged;
   final Future<void> Function(String mode) onWidgetModeChanged;
   final Future<void> Function(String mode) onThemeModeChanged;
-  final void Function(SettingsAction action)? onLibraryAction;
+  final Future<void> Function()? onOpenBookmarks;
+  final Future<void> Function()? onOpenChapterProgress;
+  final Future<void> Function()? onPickFixedWidgetVerse;
 
   const SettingsScreen({
     super.key,
@@ -22,12 +21,13 @@ class SettingsScreen extends StatefulWidget {
     required this.widgetLanguage,
     required this.widgetMode,
     required this.themeMode,
-    required this.themeColor,
     required this.onNotificationsChanged,
     required this.onWidgetLanguageChanged,
     required this.onWidgetModeChanged,
     required this.onThemeModeChanged,
-    this.onLibraryAction,
+    this.onOpenBookmarks,
+    this.onOpenChapterProgress,
+    this.onPickFixedWidgetVerse,
   });
 
   @override
@@ -135,6 +135,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _isUpdatingMode = false;
     });
+
+    if (value == 'fixed') {
+      final onPick = widget.onPickFixedWidgetVerse;
+      if (onPick != null) {
+        await onPick();
+      }
+    }
   }
 
   Future<void> _handleThemeModeChanged(String value) async {
@@ -162,17 +169,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final isLightTheme = _themeMode == 'light';
     final topColor = isLightTheme
-        ? const Color(0xFFF6E8D1)
-        : widget.themeColor.withValues(alpha: 0.85);
+        ? const Color(0xFFF0E8DC)
+        : const Color(0xFF0D1118);
     final bottomColor = isLightTheme
-        ? const Color(0xFFE7D3B4)
-        : widget.themeColor.withValues(alpha: 0.35);
+        ? const Color(0xFFE3D7C5)
+        : const Color(0xFF121927);
     final backgroundTail = isLightTheme
-        ? const Color(0xFFDCC5A4)
-        : const Color(0xFF121A28);
+        ? const Color(0xFFD7C7B2)
+        : const Color(0xFF070A10);
     final scaffoldColor = isLightTheme
-        ? const Color(0xFFF1E2CA)
-        : Colors.black;
+        ? const Color(0xFFEDE3D3)
+        : const Color(0xFF090C12);
     final primaryTextColor = isLightTheme
         ? const Color(0xFF241A12)
         : Colors.white;
@@ -181,26 +188,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : Colors.white70;
     final iconColor = isLightTheme ? const Color(0xFF2E231A) : Colors.white;
     final dropdownColor = isLightTheme
-        ? const Color(0xFFF4E6D1)
-        : const Color(0xFF1E2432);
+        ? const Color(0xFFF0E4D2)
+        : const Color(0xFF161E2C);
     final switchThumbColor = isLightTheme
         ? const Color(0xFF2E231A)
         : Colors.white;
     final switchActiveTrackColor = isLightTheme
         ? const Color(0xFFAF8A5C)
-        : Colors.white38;
+        : const Color(0xFF405169);
     final switchInactiveThumbColor = isLightTheme
         ? const Color(0xFF7A6957)
         : Colors.white70;
     final switchInactiveTrackColor = isLightTheme
         ? const Color(0xFFCCB89A)
-        : Colors.white24;
+        : const Color(0xFF263042);
     final helperPanelColor = isLightTheme
         ? Colors.black.withValues(alpha: 0.05)
-        : Colors.white.withValues(alpha: 0.08);
+        : Colors.white.withValues(alpha: 0.06);
     final helperPanelBorderColor = isLightTheme
         ? Colors.black.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.14);
+        : Colors.white.withValues(alpha: 0.1);
 
     return Scaffold(
       backgroundColor: scaffoldColor,
@@ -228,9 +235,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         height: 42,
                         padding: EdgeInsets.zero,
                         borderRadius: BorderRadius.circular(21),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: iconColor,
                           size: 20,
                         ),
                       ),
@@ -239,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text(
                       'Settings',
                       style: GoogleFonts.inter(
-                        color: Colors.white,
+                        color: primaryTextColor,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                       ),
@@ -255,20 +262,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? null
                         : _handleNotificationsChanged,
                     title: Text(
-                      'Daily notifications',
+                      'Notifications',
                       style: GoogleFonts.inter(
-                        color: Colors.white,
+                        color: primaryTextColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     subtitle: Text(
-                      'One daily verse reminder',
-                      style: GoogleFonts.inter(color: Colors.white70),
+                      'Verse reminders',
+                      style: GoogleFonts.inter(color: secondaryTextColor),
                     ),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: Colors.white38,
-                    inactiveThumbColor: Colors.white70,
-                    inactiveTrackColor: Colors.white24,
+                    activeThumbColor: switchThumbColor,
+                    activeTrackColor: switchActiveTrackColor,
+                    inactiveThumbColor: switchInactiveThumbColor,
+                    inactiveTrackColor: switchInactiveTrackColor,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -280,27 +287,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? null
                         : (value) =>
                               _handleThemeModeChanged(value ? 'light' : 'dark'),
-                    secondary: const Icon(
+                    secondary: Icon(
                       Icons.brightness_6_outlined,
-                      color: Colors.white,
+                      color: iconColor,
                     ),
                     title: Text(
-                      'Light theme',
+                      _themeMode == 'light' ? 'Light theme' : 'Dark theme',
                       style: GoogleFonts.inter(
-                        color: Colors.white,
+                        color: primaryTextColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    subtitle: Text(
-                      _themeMode == 'light'
-                          ? 'Using light backgrounds'
-                          : 'Using dark backgrounds',
-                      style: GoogleFonts.inter(color: Colors.white70),
-                    ),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: Colors.white38,
-                    inactiveThumbColor: Colors.white70,
-                    inactiveTrackColor: Colors.white24,
+                    activeThumbColor: switchThumbColor,
+                    activeTrackColor: switchActiveTrackColor,
+                    inactiveThumbColor: switchInactiveThumbColor,
+                    inactiveTrackColor: switchInactiveTrackColor,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -309,22 +310,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.translate,
-                          color: Colors.white,
+                          color: iconColor,
                         ),
                         title: Text(
                           'Widget language',
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: primaryTextColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         trailing: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _widgetLanguage,
-                            dropdownColor: const Color(0xFF1E2432),
-                            style: GoogleFonts.inter(color: Colors.white),
+                            dropdownColor: dropdownColor,
+                            style: GoogleFonts.inter(color: primaryTextColor),
                             items: const [
                               DropdownMenuItem(
                                 value: 'sanskrit',
@@ -346,22 +347,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.shuffle_rounded,
-                          color: Colors.white,
+                          color: iconColor,
                         ),
                         title: Text(
                           'Widget mode',
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: primaryTextColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         trailing: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _widgetMode,
-                            dropdownColor: const Color(0xFF1E2432),
-                            style: GoogleFonts.inter(color: Colors.white),
+                            dropdownColor: dropdownColor,
+                            style: GoogleFonts.inter(color: primaryTextColor),
                             items: const [
                               DropdownMenuItem(
                                 value: 'fixed',
@@ -378,27 +379,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     if (value != null) {
                                       _handleWidgetModeChanged(value);
                                     }
-                                  },
+                            },
                           ),
                         ),
                       ),
+                      if (_widgetMode == 'fixed')
+                        ListTile(
+                          leading: Icon(
+                            Icons.tune_rounded,
+                            color: iconColor,
+                          ),
+                          title: Text(
+                            'Choose fixed verse',
+                            style: GoogleFonts.inter(
+                              color: primaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Select verse from in-app picker',
+                            style: GoogleFonts.inter(color: secondaryTextColor),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: secondaryTextColor,
+                          ),
+                          onTap: () async {
+                            final onPick = widget.onPickFixedWidgetVerse;
+                            if (onPick != null) {
+                              await onPick();
+                            }
+                          },
+                        ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
+                            color: helperPanelColor,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.14),
+                              color: helperPanelBorderColor,
                             ),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.touch_app_outlined,
-                                color: Colors.white70,
+                                color: secondaryTextColor,
                                 size: 18,
                               ),
                               const SizedBox(width: 10),
@@ -406,9 +435,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: Text(
                                   _widgetMode == 'random'
                                       ? 'Tap the widget card to refresh random verses.'
-                                      : 'Add the widget first, then tap it to choose a fixed verse.',
+                                      : 'Choose a fixed verse here or tap the widget on home screen.',
                                   style: GoogleFonts.inter(
-                                    color: Colors.white70,
+                                    color: secondaryTextColor,
                                     fontSize: 12.5,
                                     height: 1.5,
                                   ),
@@ -427,54 +456,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.auto_graph_rounded,
-                          color: Colors.white,
+                          color: iconColor,
                         ),
                         title: Text(
                           'Chapter progress',
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: primaryTextColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         subtitle: Text(
                           'Open chapter progress and jump to verses',
-                          style: GoogleFonts.inter(color: Colors.white70),
+                          style: GoogleFonts.inter(color: secondaryTextColor),
                         ),
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.white70,
+                          color: secondaryTextColor,
                         ),
-                        onTap: () => Navigator.pop(
-                          context,
-                          SettingsAction.openChapterProgress,
-                        ),
+                        onTap: () async {
+                          final onOpen = widget.onOpenChapterProgress;
+                          if (onOpen != null) {
+                            await onOpen();
+                          }
+                        },
                       ),
                       ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.bookmark,
-                          color: Colors.white,
+                          color: iconColor,
                         ),
                         title: Text(
                           'Bookmarks',
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: primaryTextColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         subtitle: Text(
                           'Open saved verses',
-                          style: GoogleFonts.inter(color: Colors.white70),
+                          style: GoogleFonts.inter(color: secondaryTextColor),
                         ),
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.white70,
+                          color: secondaryTextColor,
                         ),
-                        onTap: () => Navigator.pop(
-                          context,
-                          SettingsAction.openBookmarks,
-                        ),
+                        onTap: () async {
+                          final onOpen = widget.onOpenBookmarks;
+                          if (onOpen != null) {
+                            await onOpen();
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -488,9 +521,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _glassSection({required String title, required Widget child}) {
+    final isLightTheme = _themeMode == 'light';
+    final sectionTitleColor = isLightTheme
+        ? const Color(0xFF5B4A36)
+        : Colors.white70;
+    final glassColor = isLightTheme
+        ? const Color(0xFFFFF3DE)
+        : const Color(0xFF1A2230);
     return GlassContainer(
       blur: 12,
-      opacity: 0.14,
+      opacity: isLightTheme ? 0.34 : 0.3,
+      color: glassColor,
       borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +541,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               title,
               style: GoogleFonts.inter(
-                color: Colors.white70,
+                color: sectionTitleColor,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
                 letterSpacing: 0.5,

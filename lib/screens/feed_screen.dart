@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -16,9 +17,18 @@ import '../services/verse_repository.dart';
 import 'settings_screen.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({super.key, this.initialVerseId});
+  const FeedScreen({
+    super.key,
+    this.initialVerseId,
+    this.persistReadingState = true,
+    this.enableWidgetLaunchHandling = true,
+    this.entryContextLabel,
+  });
 
   final String? initialVerseId;
+  final bool persistReadingState;
+  final bool enableWidgetLaunchHandling;
+  final String? entryContextLabel;
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
@@ -32,8 +42,20 @@ class _FeedScreenState extends State<FeedScreen> {
   static const String _widgetModeKey = 'widget_mode';
   static const String _displayLanguageKey = 'display_language';
   static const String _themeModeKey = 'theme_mode';
-  static const String _darkBackgroundImage = 'assets/images/Dark.jpeg';
-  static const String _lightBackgroundImage = 'assets/images/light .jpeg';
+  static const String _darkBackgroundImage = 'assets/images/dark.jpeg';
+  static const String _lightBackgroundImage = 'assets/images/light.jpeg';
+  static const List<String> _darkBackgroundCandidates = <String>[
+    'assets/images/dark.jpeg',
+    'assets/images/dark.jpg',
+    'assets/images/dark.png',
+    'assets/images/dark.webp',
+  ];
+  static const List<String> _lightBackgroundCandidates = <String>[
+    'assets/images/light.jpeg',
+    'assets/images/light.jpg',
+    'assets/images/light.png',
+    'assets/images/light.webp',
+  ];
 
   final PageController _pageController = PageController();
   final GlobalKey _globalKey = GlobalKey();
@@ -61,13 +83,17 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void initState() {
     super.initState();
-    _widgetService.setLaunchActionHandler(_handleWidgetLaunchAction);
+    if (widget.enableWidgetLaunchHandling) {
+      _widgetService.setLaunchActionHandler(_handleWidgetLaunchAction);
+    }
     _initializeScreen();
   }
 
   @override
   void dispose() {
-    _widgetService.clearLaunchActionHandler();
+    if (widget.enableWidgetLaunchHandling) {
+      _widgetService.clearLaunchActionHandler();
+    }
     _pageController.dispose();
     super.dispose();
   }
@@ -78,6 +104,7 @@ class _FeedScreenState extends State<FeedScreen> {
     await _loadNotificationState();
     await _widgetService.setLanguage(_widgetLanguage);
     await _widgetService.setMode(_widgetMode);
+    await _widgetService.setTheme(_themeMode);
     await _consumePendingWidgetLaunchAction();
   }
 
@@ -95,7 +122,7 @@ class _FeedScreenState extends State<FeedScreen> {
       rawDisplayLanguage,
     );
     final normalizedThemeMode = _normalizeThemeMode(rawThemeMode);
-    final selectedBackground = _backgroundForTheme(normalizedThemeMode);
+    final selectedBackground = await _backgroundForTheme(normalizedThemeMode);
 
     if (!mounted) {
       return;
@@ -273,10 +300,7 @@ class _FeedScreenState extends State<FeedScreen> {
       if (_widgetMode == 'random') {
         await _setWidgetMode('fixed');
       }
-      await _showWidgetVersePicker(
-        title: 'Choose Verse For Widget',
-        subtitle: 'Opened from widget tap - ${_languageDisplayName(_widgetLanguage)}',
-      );
+      await _showWidgetVersePicker();
     } finally {
       _isHandlingWidgetLaunchAction = false;
     }
@@ -309,9 +333,11 @@ class _FeedScreenState extends State<FeedScreen> {
           }
         });
 
-        _recordVerseInHistory(loadedVerses[safeIndex].id);
-        _persistCurrentIndex(safeIndex);
-        _recordChapterProgress(loadedVerses[safeIndex]);
+        if (widget.persistReadingState) {
+          _recordVerseInHistory(loadedVerses[safeIndex].id);
+          _persistCurrentIndex(safeIndex);
+          _recordChapterProgress(loadedVerses[safeIndex]);
+        }
       }
 
       final pendingAction = _pendingWidgetLaunchAction;
@@ -342,10 +368,57 @@ class _FeedScreenState extends State<FeedScreen> {
     return targetIndex;
   }
 
-  String _backgroundForTheme(String mode) {
+  Future<String> _resolveExistingAsset(
+    List<String> candidates, {
+    required String fallback,
+  }) async {
+    for (final candidate in candidates) {
+      try {
+        await rootBundle.load(candidate);
+        return candidate;
+      } catch (_) {
+        // Ignore missing candidates and continue to the next supported format.
+      }
+    }
+    return fallback;
+  }
+
+  Future<String> _backgroundForTheme(String mode) async {
     return _normalizeThemeMode(mode) == 'light'
-        ? _lightBackgroundImage
-        : _darkBackgroundImage;
+        ? _resolveExistingAsset(
+            _lightBackgroundCandidates,
+            fallback: _lightBackgroundImage,
+          )
+        : _resolveExistingAsset(
+            _darkBackgroundCandidates,
+            fallback: _darkBackgroundImage,
+          );
+  }
+
+  Widget _buildBackgroundImage() {
+    return Image.asset(
+      _activeBackgroundImage,
+      key: ValueKey<String>(_activeBackgroundImage),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        final fallbackAsset = _themeMode == 'light'
+            ? _darkBackgroundImage
+            : _lightBackgroundImage;
+
+        if (_activeBackgroundImage == fallbackAsset) {
+          return Container(color: Colors.black);
+        }
+
+        return Image.asset(
+          fallbackAsset,
+          key: ValueKey<String>(fallbackAsset),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(color: Colors.black);
+          },
+        );
+      },
+    );
   }
 
   Future<void> _recordChapterProgress(Verse verse) async {
@@ -391,8 +464,7 @@ class _FeedScreenState extends State<FeedScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: <XFile>[XFile(file.path)],
-          text:
-              'Chapter ${verse.chapter}, Verse ${verse.verseNumber} - Bhagavad Gita',
+          text: '${verse.referenceLabel} - Bhagavad Gita',
         ),
       );
     } catch (e) {
@@ -427,7 +499,7 @@ class _FeedScreenState extends State<FeedScreen> {
       SnackBar(
         content: Text(
           success
-              ? 'Pinned Chapter ${verse.chapter}, Verse ${verse.verseNumber} to widget'
+              ? 'Pinned ${verse.referenceLabel} to widget'
               : 'Unable to pin verse to widget',
         ),
         duration: const Duration(seconds: 2),
@@ -455,11 +527,16 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Future<void> _setThemeMode(String mode) async {
     final normalized = _normalizeThemeMode(mode);
+    final selectedBackground = await _backgroundForTheme(normalized);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _themeMode = normalized;
-      _activeBackgroundImage = _backgroundForTheme(normalized);
+      _activeBackgroundImage = selectedBackground;
     });
     await _persistThemeMode(normalized);
+    await _widgetService.setTheme(normalized);
   }
 
   void _cycleDisplayLanguage() {
@@ -494,8 +571,7 @@ class _FeedScreenState extends State<FeedScreen> {
       final verseText = _textForLanguage(verse, _displayLanguage);
       await SharePlus.instance.share(
         ShareParams(
-          text:
-              'Chapter ${verse.chapter}, Verse ${verse.verseNumber}\n\n$verseText\n\n- Bhagavad Gita',
+          text: '${verse.referenceLabel}\n\n$verseText\n\n- Bhagavad Gita',
         ),
       );
     } catch (_) {
@@ -529,19 +605,6 @@ class _FeedScreenState extends State<FeedScreen> {
       }
     });
     _persistSavedVerses();
-  }
-
-  bool _matchesSearchQuery(Verse verse, String query) {
-    final lowerQuery = query.toLowerCase();
-    final chapterVerse = '${verse.chapter}:${verse.verseNumber}';
-    final chapterVerseSpaced = '${verse.chapter} ${verse.verseNumber}';
-
-    return chapterVerse.contains(lowerQuery) ||
-        chapterVerseSpaced.contains(lowerQuery) ||
-        verse.id.toLowerCase().contains(lowerQuery) ||
-        verse.translationEnglish.toLowerCase().contains(lowerQuery) ||
-        verse.transliteration.toLowerCase().contains(lowerQuery) ||
-        verse.originalScript.contains(query);
   }
 
   void _jumpToVerseById(String verseId) {
@@ -672,48 +735,73 @@ class _FeedScreenState extends State<FeedScreen> {
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: GridView.builder(
-                          controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 5,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                childAspectRatio: 1.5,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount = constraints.maxWidth < 360
+                                ? 4
+                                : 5;
+                            return GridView.builder(
+                              controller: scrollController,
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                4,
+                                20,
+                                20,
                               ),
-                          itemCount: chapterVerses.length,
-                          itemBuilder: (context, index) {
-                            final verse = chapterVerses[index];
-                            final isCurrent = verse.id == currentVerseId;
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(10),
-                              onTap: () => Navigator.of(context).pop(verse.id),
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: isCurrent
-                                      ? const Color(
-                                          0xFFFFD27D,
-                                        ).withValues(alpha: 0.26)
-                                      : Colors.white.withValues(alpha: 0.12),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    mainAxisSpacing: 8,
+                                    crossAxisSpacing: 8,
+                                    childAspectRatio: crossAxisCount == 4
+                                        ? 1.9
+                                        : 1.6,
+                                  ),
+                              itemCount: chapterVerses.length,
+                              itemBuilder: (context, index) {
+                                final verse = chapterVerses[index];
+                                final isCurrent = verse.id == currentVerseId;
+                                return InkWell(
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isCurrent
-                                        ? const Color(
-                                            0xFFFFD27D,
-                                          ).withValues(alpha: 0.85)
-                                        : Colors.white.withValues(alpha: 0.18),
+                                  onTap: () =>
+                                      Navigator.of(context).pop(verse.id),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isCurrent
+                                          ? const Color(
+                                              0xFFFFD27D,
+                                            ).withValues(alpha: 0.26)
+                                          : Colors.white.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isCurrent
+                                            ? const Color(
+                                                0xFFFFD27D,
+                                              ).withValues(alpha: 0.85)
+                                            : Colors.white.withValues(
+                                                alpha: 0.18,
+                                              ),
+                                      ),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        verse.displayVerseLabel,
+                                        maxLines: 1,
+                                        style: GoogleFonts.inter(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                child: Text(
-                                  '${verse.verseNumber}',
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -734,54 +822,351 @@ class _FeedScreenState extends State<FeedScreen> {
     _jumpToVerseById(selectedVerseId);
   }
 
-  Future<void> _showWidgetVersePicker({
-    String? title,
-    String? subtitle,
-  }) async {
-    final selectedVerseId = await showModalBottomSheet<String>(
+  Future<void> _showWidgetVersePicker() async {
+    if (_verses.isEmpty) {
+      return;
+    }
+
+    final versesByChapter = <int, List<Verse>>{};
+    for (final verse in _verses) {
+      versesByChapter.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
+    }
+    for (final entry in versesByChapter.entries) {
+      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+    }
+
+    final chapters = versesByChapter.keys.toList()..sort();
+    if (chapters.isEmpty) {
+      return;
+    }
+
+    final currentVerse = _verses[_currentIndex];
+    var selectedChapter = chapters.contains(currentVerse.chapter)
+        ? currentVerse.chapter
+        : chapters.first;
+    var chapterVerses = versesByChapter[selectedChapter] ?? const <Verse>[];
+    var selectedVerseId = chapterVerses.any((verse) => verse.id == currentVerse.id)
+        ? currentVerse.id
+        : (chapterVerses.isNotEmpty ? chapterVerses.first.id : '');
+
+    final selectedId = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useSafeArea: true,
+      useRootNavigator: true,
       builder: (_) {
-        return _VerseSearchSheet(
-          verses: _verses,
-          matchesSearchQuery: _matchesSearchQuery,
-          initialChildSize: 0.8,
-          title: title ?? 'Choose Fixed Widget Verse',
-          subtitle:
-              subtitle ??
-              'Widget language: ${_languageDisplayName(_widgetLanguage)}',
-          trailingIcon: const Icon(
-            Icons.widgets_outlined,
-            color: Colors.white70,
-          ),
-          previewTextBuilder: (verse) =>
-              _textForLanguage(verse, _widgetLanguage),
+        return DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          minChildSize: 0.68,
+          maxChildSize: 0.96,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                chapterVerses = versesByChapter[selectedChapter] ?? const <Verse>[];
+                if (chapterVerses.isEmpty) {
+                  return GlassContainer(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
+                    opacity: 0.16,
+                    blur: 24,
+                    child: Center(
+                      child: Text(
+                        'No verses available for this chapter.',
+                        style: GoogleFonts.inter(color: Colors.white70),
+                      ),
+                    ),
+                  );
+                } else if (!chapterVerses.any((v) => v.id == selectedVerseId)) {
+                  selectedVerseId = chapterVerses.first.id;
+                }
+
+                final selectedVerse = chapterVerses.firstWhere(
+                  (v) => v.id == selectedVerseId,
+                  orElse: () => chapterVerses.first,
+                );
+
+                return GlassContainer(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                  opacity: 0.16,
+                  blur: 24,
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Choose Fixed Widget Verse',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Pick a chapter, then tap the exact verse you want pinned.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Language: ${_languageDisplayName(_widgetLanguage)}',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          color: Colors.white54,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Chapters',
+                        style: GoogleFonts.inter(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 44,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: chapters.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final chapter = chapters[index];
+                            final isSelected = chapter == selectedChapter;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                setModalState(() {
+                                  selectedChapter = chapter;
+                                  final updated =
+                                      versesByChapter[selectedChapter] ??
+                                      const <Verse>[];
+                                  selectedVerseId =
+                                      updated.isEmpty ? '' : updated.first.id;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? const Color(
+                                          0xFFFFD27D,
+                                        ).withValues(alpha: 0.26)
+                                      : Colors.white.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? const Color(
+                                            0xFFFFD27D,
+                                          ).withValues(alpha: 0.85)
+                                        : Colors.white.withValues(alpha: 0.14),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Ch $chapter',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Verses',
+                        style: GoogleFonts.inter(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: chapterVerses.map((verse) {
+                            final isSelected = verse.id == selectedVerseId;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                setModalState(() {
+                                  selectedVerseId = verse.id;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                constraints: const BoxConstraints(minWidth: 60),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.14),
+                                  ),
+                                ),
+                                child: Text(
+                                  verse.displayVerseLabel,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    color: isSelected
+                                        ? Colors.black87
+                                        : Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.09),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.14),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    selectedVerse.referenceLabel,
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              _textForLanguage(selectedVerse, _widgetLanguage),
+                              maxLines: 5,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: selectedVerseId.isEmpty
+                              ? null
+                              : () => Navigator.of(context).pop(selectedVerseId),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.widgets_outlined),
+                          label: Text(
+                            'Pin to widget',
+                            style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );
 
-    if (!mounted || selectedVerseId == null) {
+    if (!mounted || selectedId == null || selectedId.isEmpty) {
       return;
     }
 
-    final selectedIndex = _verses.indexWhere(
-      (verse) => verse.id == selectedVerseId,
-    );
-    if (selectedIndex == -1) {
+    final selectedVerse = _verses.where((verse) => verse.id == selectedId);
+    if (selectedVerse.isEmpty) {
       return;
     }
+
     if (_widgetMode != 'fixed') {
       await _setWidgetMode('fixed');
     }
-    await _pinVerseToWidget(_verses[selectedIndex]);
+    await _pinVerseToWidget(selectedVerse.first);
   }
 
   Future<void> _openSettingsPage() async {
-    final accentColor = _hexToColor(_verses[_currentIndex].backgroundHexColor);
-    final action = await Navigator.of(context).push<SettingsAction>(
-      PageRouteBuilder<SettingsAction>(
+    await Navigator.of(context).push<void>(
+      PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 220),
         reverseTransitionDuration: const Duration(milliseconds: 180),
         pageBuilder: (_, animation, secondaryAnimation) => SettingsScreen(
@@ -789,11 +1174,13 @@ class _FeedScreenState extends State<FeedScreen> {
           widgetLanguage: _widgetLanguage,
           widgetMode: _widgetMode,
           themeMode: _themeMode,
-          themeColor: accentColor,
           onNotificationsChanged: _setNotifications,
           onWidgetLanguageChanged: _setWidgetLanguage,
           onWidgetModeChanged: _setWidgetMode,
           onThemeModeChanged: _setThemeMode,
+          onOpenBookmarks: () => _showSavedVerses(context),
+          onOpenChapterProgress: _showChapterProgressSheet,
+          onPickFixedWidgetVerse: _showWidgetVersePicker,
         ),
         transitionsBuilder: (_, animation, secondaryAnimation, child) {
           final fade = CurvedAnimation(
@@ -811,22 +1198,6 @@ class _FeedScreenState extends State<FeedScreen> {
         },
       ),
     );
-
-    if (!mounted || action == null) {
-      return;
-    }
-
-    // Wait for settings pop transition to fully settle before opening sheets.
-    await Future<void>.delayed(const Duration(milliseconds: 360));
-    if (!mounted) {
-      return;
-    }
-
-    if (action == SettingsAction.openBookmarks) {
-      await _showSavedVerses(context);
-    } else if (action == SettingsAction.openChapterProgress) {
-      await _showChapterProgressSheet();
-    }
   }
 
   Future<void> _showSavedVerses(BuildContext parentContext) async {
@@ -835,6 +1206,7 @@ class _FeedScreenState extends State<FeedScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useSafeArea: true,
+      useRootNavigator: true,
       builder: (sheetContext) {
         return DraggableScrollableSheet(
           initialChildSize: 0.7,
@@ -896,7 +1268,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                       vertical: 8,
                                     ),
                                     title: Text(
-                                      'Chapter ${verse.chapter}, Verse ${verse.verseNumber}',
+                                      verse.referenceLabel,
                                       style: GoogleFonts.inter(
                                         fontWeight: FontWeight.w600,
                                         color: Colors.white,
@@ -969,7 +1341,6 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _showChapterProgressSheet() async {
-    final chapterProgress = await _readingProgressService.loadChapterProgress();
     final chapterReadIds = await _readingProgressService.loadChapterReadIds();
     if (!mounted) {
       return;
@@ -977,6 +1348,9 @@ class _FeedScreenState extends State<FeedScreen> {
 
     final versesByChapter = <int, List<Verse>>{};
     for (final verse in _verses) {
+      if (verse.verseNumber <= 0) {
+        continue;
+      }
       versesByChapter.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
     }
     for (final entry in versesByChapter.entries) {
@@ -988,6 +1362,7 @@ class _FeedScreenState extends State<FeedScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: true,
       builder: (sheetContext) {
         return DraggableScrollableSheet(
           initialChildSize: 0.78,
@@ -1033,11 +1408,9 @@ class _FeedScreenState extends State<FeedScreen> {
                         final chapterVerses = versesByChapter[chapter]!;
                         final total = chapterVerses.length;
                         final readIds = chapterReadIds[chapter] ?? <String>{};
-                        final readRaw =
-                            chapterProgress[chapter] ?? readIds.length;
-                        final read = readRaw < 0
-                            ? 0
-                            : (readRaw > total ? total : readRaw);
+                        final read = chapterVerses
+                            .where((verse) => readIds.contains(verse.id))
+                            .length;
                         final progress = total == 0 ? 0.0 : read / total;
 
                         return Padding(
@@ -1105,7 +1478,12 @@ class _FeedScreenState extends State<FeedScreen> {
                                           sheetContext,
                                         ).pop(verse.id),
                                         child: Container(
-                                          width: 44,
+                                          constraints: const BoxConstraints(
+                                            minWidth: 44,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
                                           alignment: Alignment.center,
                                           decoration: BoxDecoration(
                                             color: isRead
@@ -1129,7 +1507,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                             ),
                                           ),
                                           child: Text(
-                                            '${verse.verseNumber}',
+                                            verse.verseLabel,
                                             style: GoogleFonts.inter(
                                               color: Colors.white,
                                               fontWeight: FontWeight.w600,
@@ -1218,6 +1596,31 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
+  Widget _buildNotificationPreviewBadge() {
+    final label = widget.entryContextLabel ?? 'Notification Preview';
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      borderRadius: BorderRadius.circular(18),
+      opacity: 0.15,
+      blur: 18,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.notifications_active_outlined, color: Colors.white, size: 17),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLightTheme = _themeMode == 'light';
@@ -1240,10 +1643,7 @@ class _FeedScreenState extends State<FeedScreen> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Image(
-                image: AssetImage(_activeBackgroundImage),
-                fit: BoxFit.cover,
-              ),
+              child: _buildBackgroundImage(),
             ),
             Positioned.fill(
               child: DecoratedBox(
@@ -1299,10 +1699,7 @@ class _FeedScreenState extends State<FeedScreen> {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Image(
-                  image: AssetImage(_activeBackgroundImage),
-                  fit: BoxFit.cover,
-                ),
+                child: _buildBackgroundImage(),
               ),
               Positioned.fill(
                 child: DecoratedBox(
@@ -1350,9 +1747,11 @@ class _FeedScreenState extends State<FeedScreen> {
                   setState(() {
                     _currentIndex = index;
                   });
-                  _persistCurrentIndex(index);
-                  _recordVerseInHistory(_verses[index].id);
-                  _recordChapterProgress(_verses[index]);
+                  if (widget.persistReadingState) {
+                    _persistCurrentIndex(index);
+                    _recordVerseInHistory(_verses[index].id);
+                    _recordChapterProgress(_verses[index]);
+                  }
                 },
                 itemBuilder: (context, index) {
                   final verse = _verses[index];
@@ -1382,6 +1781,15 @@ class _FeedScreenState extends State<FeedScreen> {
                     blur: 22,
                     child: Row(
                       children: [
+                        if (!widget.persistReadingState) ...[
+                          _buildTopIconButton(
+                            icon: Icons.arrow_back,
+                            onTap: () => Navigator.of(context).maybePop(),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildNotificationPreviewBadge(),
+                          const SizedBox(width: 8),
+                        ],
                         _buildTopLanguageButton(),
                         const Spacer(),
                         _buildTopIconButton(
@@ -1405,427 +1813,3 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 }
 
-class _VerseSearchSheet extends StatefulWidget {
-  const _VerseSearchSheet({
-    required this.verses,
-    required this.matchesSearchQuery,
-    required this.initialChildSize,
-    required this.trailingIcon,
-    this.title,
-    this.subtitle,
-    this.previewTextBuilder,
-  });
-
-  final List<Verse> verses;
-  final bool Function(Verse verse, String query) matchesSearchQuery;
-  final double initialChildSize;
-  final String? title;
-  final String? subtitle;
-  final String Function(Verse verse)? previewTextBuilder;
-  final Icon trailingIcon;
-
-  @override
-  State<_VerseSearchSheet> createState() => _VerseSearchSheetState();
-}
-
-class _VerseSearchSheetState extends State<_VerseSearchSheet> {
-  final TextEditingController _searchController = TextEditingController();
-
-  String _query = '';
-  late final List<int> _chapters;
-  int? _selectedChapter;
-  int? _selectedVerseNumber;
-
-  @override
-  void initState() {
-    super.initState();
-    _chapters = widget.verses.map((verse) => verse.chapter).toSet().toList()
-      ..sort();
-    if (_chapters.isNotEmpty) {
-      _selectedChapter = _chapters.first;
-      final verseNumbers = _verseNumbersForChapter(_selectedChapter!);
-      if (verseNumbers.isNotEmpty) {
-        _selectedVerseNumber = verseNumbers.first;
-      }
-    }
-  }
-
-  List<Verse> get _searchResults {
-    if (_query.isEmpty) {
-      return const <Verse>[];
-    }
-
-    return widget.verses
-        .where((verse) => widget.matchesSearchQuery(verse, _query))
-        .take(60)
-        .toList();
-  }
-
-  List<int> _verseNumbersForChapter(int chapter) {
-    return widget.verses
-        .where((verse) => verse.chapter == chapter)
-        .map((verse) => verse.verseNumber)
-        .toSet()
-        .toList()
-      ..sort();
-  }
-
-  Verse? get _selectedVerse {
-    final chapter = _selectedChapter;
-    final verseNumber = _selectedVerseNumber;
-    if (chapter == null || verseNumber == null) {
-      return null;
-    }
-
-    for (final verse in widget.verses) {
-      if (verse.chapter == chapter && verse.verseNumber == verseNumber) {
-        return verse;
-      }
-    }
-    return null;
-  }
-
-  Map<int, List<Verse>> _groupByChapter(List<Verse> verses) {
-    final grouped = <int, List<Verse>>{};
-    for (final verse in verses) {
-      grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
-    }
-    final sortedKeys = grouped.keys.toList()..sort();
-    return <int, List<Verse>>{
-      for (final chapter in sortedKeys) chapter: grouped[chapter]!,
-    };
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _updateQuery(String value) {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _query = value.trim();
-    });
-  }
-
-  void _onChapterChanged(int? chapter) {
-    if (chapter == null || !mounted) {
-      return;
-    }
-    final verseNumbers = _verseNumbersForChapter(chapter);
-    setState(() {
-      _selectedChapter = chapter;
-      _selectedVerseNumber = verseNumbers.isEmpty ? null : verseNumbers.first;
-    });
-  }
-
-  void _onVerseChanged(int? verseNumber) {
-    if (verseNumber == null || !mounted) {
-      return;
-    }
-    setState(() {
-      _selectedVerseNumber = verseNumber;
-    });
-  }
-
-  Widget _buildBrowseSection(ScrollController scrollController) {
-    final chapter = _selectedChapter;
-    final verseNumbers = chapter == null
-        ? const <int>[]
-        : _verseNumbersForChapter(chapter);
-    final selectedVerse = _selectedVerse;
-
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Browse by Chapter & Verse',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Pick chapter and verse directly',
-                style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      key: ValueKey<int?>(chapter),
-                      initialValue: chapter,
-                      decoration: InputDecoration(
-                        labelText: 'Chapter',
-                        labelStyle: GoogleFonts.inter(color: Colors.white70),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.1),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                      ),
-                      dropdownColor: const Color(0xFF1C1C1E),
-                      style: GoogleFonts.inter(color: Colors.white),
-                      iconEnabledColor: Colors.white70,
-                      items: _chapters
-                          .map(
-                            (value) => DropdownMenuItem<int>(
-                              value: value,
-                              child: Text(
-                                'Chapter $value',
-                                style: GoogleFonts.inter(color: Colors.white),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: _onChapterChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      key: ValueKey<int?>(_selectedVerseNumber),
-                      initialValue: verseNumbers.contains(_selectedVerseNumber)
-                          ? _selectedVerseNumber
-                          : null,
-                      decoration: InputDecoration(
-                        labelText: 'Verse',
-                        labelStyle: GoogleFonts.inter(color: Colors.white70),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.1),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                      ),
-                      dropdownColor: const Color(0xFF1C1C1E),
-                      style: GoogleFonts.inter(color: Colors.white),
-                      iconEnabledColor: Colors.white70,
-                      items: verseNumbers
-                          .map(
-                            (value) => DropdownMenuItem<int>(
-                              value: value,
-                              child: Text(
-                                'V$value',
-                                style: GoogleFonts.inter(color: Colors.white),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: _onVerseChanged,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: selectedVerse == null
-                      ? null
-                      : () {
-                          FocusScope.of(context).unfocus();
-                          Navigator.of(context).pop(selectedVerse.id);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black87,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    selectedVerse == null
-                        ? 'Select a verse'
-                        : 'Open Chapter ${selectedVerse.chapter}, Verse ${selectedVerse.verseNumber}',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Or type in search above',
-          style: GoogleFonts.inter(color: Colors.white70),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGroupedResults(
-    ScrollController scrollController,
-    List<Verse> results,
-  ) {
-    final grouped = _groupByChapter(results);
-    return ListView(
-      controller: scrollController,
-      padding: const EdgeInsets.only(top: 4, bottom: 8),
-      children: [
-        for (final entry in grouped.entries) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
-            child: Text(
-              'Chapter ${entry.key}',
-              style: GoogleFonts.inter(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          for (final verse in entry.value)
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 6,
-              ),
-              title: Text(
-                'Verse ${verse.verseNumber}',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                widget.previewTextBuilder?.call(verse) ??
-                    verse.translationEnglish,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(color: Colors.white70),
-              ),
-              trailing: widget.trailingIcon,
-              onTap: () {
-                FocusScope.of(context).unfocus();
-                Navigator.of(context).pop(verse.id);
-              },
-            ),
-        ],
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final results = _searchResults;
-    return DraggableScrollableSheet(
-      initialChildSize: widget.initialChildSize,
-      minChildSize: 0.45,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) {
-        return GlassContainer(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          opacity: 0.15,
-          blur: 25,
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              if (widget.title != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  widget.title!,
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ] else
-                const SizedBox(height: 20),
-              if (widget.subtitle != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  widget.subtitle!,
-                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 13),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextField(
-                  controller: _searchController,
-                  style: GoogleFonts.inter(color: Colors.white),
-                  onChanged: _updateQuery,
-                  decoration: InputDecoration(
-                    hintText: 'Search chapter, verse, Sanskrit, or English',
-                    hintStyle: GoogleFonts.inter(color: Colors.white70),
-                    prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                    suffixIcon: _query.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              _updateQuery('');
-                            },
-                          ),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.08),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _query.isEmpty
-                    ? _buildBrowseSection(scrollController)
-                    : results.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No verses found',
-                          style: GoogleFonts.inter(color: Colors.white70),
-                        ),
-                      )
-                    : _buildGroupedResults(scrollController, results),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}

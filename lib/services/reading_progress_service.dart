@@ -65,7 +65,7 @@ class ReadingProgressService {
 
   Future<void> recordVerse(Verse verse) async {
     final verseId = verse.id.trim();
-    if (verse.chapter <= 0 || verseId.isEmpty) {
+    if (verse.chapter <= 0 || verseId.isEmpty || verse.verseNumber <= 0) {
       return;
     }
 

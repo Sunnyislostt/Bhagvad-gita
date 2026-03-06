@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -16,14 +18,28 @@ class NotificationService {
   static const String _prefKey = 'notifications_enabled';
   static const int _daysToSchedule = 30;
   static const int _dailyBaseNotificationId = 1000;
-  static const int _dailyVerseHour = 8;
+  static const int _dailySlotCount = 2;
+  static const int _morningVerseHour = 8;
+  static const int _eveningVerseHour = 18;
 
   bool _timeZonesInitialized = false;
+  Future<void> Function(String verseId)? _onVerseOpenRequested;
+  String? _pendingVerseId;
 
   Future<void> initialize() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
-    await _plugin.initialize(settings: initSettings);
+    await _plugin.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+    );
+
+    final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+    final launchPayload = launchDetails?.notificationResponse?.payload;
+    final launchVerseId = _extractVerseId(launchPayload);
+    if (launchVerseId != null) {
+      _pendingVerseId = launchVerseId;
+    }
 
     if (await areNotificationsEnabled()) {
       final hasPermission = await _ensureNotificationPermission();
@@ -91,6 +107,23 @@ class NotificationService {
     _timeZonesInitialized = true;
   }
 
+  Future<void> setVerseOpenHandler(
+    Future<void> Function(String verseId) onVerseOpen,
+  ) async {
+    _onVerseOpenRequested = onVerseOpen;
+    final pendingVerseId = _pendingVerseId;
+    if (pendingVerseId == null || pendingVerseId.isEmpty) {
+      return;
+    }
+
+    _pendingVerseId = null;
+    await onVerseOpen(pendingVerseId);
+  }
+
+  void clearVerseOpenHandler() {
+    _onVerseOpenRequested = null;
+  }
+
   Future<void> _scheduleDailyNotifications() async {
     final verses = await _loadVerses();
     if (verses.isEmpty) {
@@ -101,8 +134,8 @@ class NotificationService {
 
     const androidDetails = AndroidNotificationDetails(
       'daily_verse',
-      'Daily Verse',
-      channelDescription: 'Daily Bhagavad Gita verse reminder',
+      'Verse Reminders',
+      channelDescription: 'Morning and evening Bhagavad Gita verse reminders',
       importance: Importance.high,
       priority: Priority.high,
     );
@@ -113,20 +146,30 @@ class NotificationService {
     final now = DateTime.now();
     for (var dayOffset = 0; dayOffset < _daysToSchedule; dayOffset++) {
       final date = DateTime(now.year, now.month, now.day + dayOffset);
-      final dailyVerse = _getTodaysVerse(verses, date);
-      final dailyVerseTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        _dailyVerseHour,
-      );
+      final dailySlots = <_NotificationSlot>[
+        _NotificationSlot(
+          idOffset: 0,
+          label: 'Morning Verse',
+          scheduledAt: DateTime(date.year, date.month, date.day, _morningVerseHour),
+          verse: _verseForDateAndSlot(verses, date, 0),
+        ),
+        _NotificationSlot(
+          idOffset: 1,
+          label: 'Evening Verse',
+          scheduledAt: DateTime(date.year, date.month, date.day, _eveningVerseHour),
+          verse: _verseForDateAndSlot(verses, date, 1),
+        ),
+      ];
 
-      if (dailyVerseTime.isAfter(now)) {
+      for (final slot in dailySlots) {
+        if (!slot.scheduledAt.isAfter(now)) {
+          continue;
+        }
         await _scheduleNotification(
-          id: _dailyBaseNotificationId + dayOffset,
-          title: "Daily Verse - Ch.${dailyVerse.chapter}, V.${dailyVerse.verseNumber}",
-          verse: dailyVerse,
-          scheduledAt: dailyVerseTime,
+          id: _dailyBaseNotificationId + (dayOffset * _dailySlotCount) + slot.idOffset,
+          title: '${slot.label} - ${slot.verse.referenceLabel}',
+          verse: slot.verse,
+          scheduledAt: slot.scheduledAt,
           notificationDetails: notificationDetails,
         );
       }
@@ -144,15 +187,50 @@ class NotificationService {
       id: id,
       title: title,
       body: verse.translationEnglish,
+      payload: jsonEncode(<String, String>{'verseId': verse.id}),
       notificationDetails: notificationDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       scheduledDate: tz.TZDateTime.from(scheduledAt.toUtc(), tz.UTC),
     );
   }
 
-  Verse _getTodaysVerse(List<Verse> verses, DateTime date) {
-    final index = _daySeed(date) % verses.length;
+  Verse _verseForDateAndSlot(List<Verse> verses, DateTime date, int slotIndex) {
+    final index = (_daySeed(date) + (slotIndex * 97)) % verses.length;
     return verses[index];
+  }
+
+  Future<void> _handleNotificationResponse(NotificationResponse response) async {
+    final verseId = _extractVerseId(response.payload);
+    if (verseId == null || verseId.isEmpty) {
+      return;
+    }
+
+    final handler = _onVerseOpenRequested;
+    if (handler != null) {
+      await handler(verseId);
+      return;
+    }
+
+    _pendingVerseId = verseId;
+  }
+
+  String? _extractVerseId(String? payload) {
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) {
+        final verseId = decoded['verseId']?.toString().trim();
+        if (verseId != null && verseId.isNotEmpty) {
+          return verseId;
+        }
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
   }
 
   int _daySeed(DateTime date) {
@@ -163,4 +241,18 @@ class NotificationService {
   Future<List<Verse>> _loadVerses() async {
     return _verseRepository.loadVerses();
   }
+}
+
+class _NotificationSlot {
+  const _NotificationSlot({
+    required this.idOffset,
+    required this.label,
+    required this.scheduledAt,
+    required this.verse,
+  });
+
+  final int idOffset;
+  final String label;
+  final DateTime scheduledAt;
+  final Verse verse;
 }

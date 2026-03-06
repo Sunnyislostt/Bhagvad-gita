@@ -56,6 +56,7 @@ class VerseWidgetProvider : AppWidgetProvider() {
                 .remove(randomEnglishTranslationKey(appWidgetId))
                 .remove(randomChapterKey(appWidgetId))
                 .remove(randomVerseNumberKey(appWidgetId))
+                .remove(randomVerseLabelKey(appWidgetId))
         }
         editor.apply()
     }
@@ -83,7 +84,12 @@ class VerseWidgetProvider : AppWidgetProvider() {
             val displayLanguage = prefs.getString(MainActivity.KEY_DISPLAY_LANGUAGE, "english") ?: "english"
             val widgetMode = prefs.getString(MainActivity.KEY_WIDGET_MODE, MainActivity.MODE_FIXED)
                 ?: MainActivity.MODE_FIXED
+            val themeMode = prefs.getString(MainActivity.KEY_THEME_MODE, MainActivity.THEME_DARK)
+                ?: MainActivity.THEME_DARK
             val isRandomMode = widgetMode == MainActivity.MODE_RANDOM
+            val isLightTheme = themeMode == MainActivity.THEME_LIGHT
+
+            applyTheme(views, isLightTheme)
 
             if (isRandomMode) {
                 val randomVerse = if (forceRandom) {
@@ -105,11 +111,7 @@ class VerseWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_verse, verseText)
                     views.setTextViewText(
                         R.id.widget_reference,
-                        "Chapter ${randomVerse.chapter} - Verse ${randomVerse.verseNumber}",
-                    )
-                    views.setTextViewText(
-                        R.id.widget_footer,
-                        "Open app",
+                        "Chapter ${randomVerse.chapter} - Verse ${randomVerse.verseLabel}",
                     )
                     views.setTextViewTextSize(
                         R.id.widget_verse,
@@ -125,10 +127,6 @@ class VerseWidgetProvider : AppWidgetProvider() {
                         R.id.widget_reference,
                         "Random mode unavailable",
                     )
-                    views.setTextViewText(
-                        R.id.widget_footer,
-                        "Open app to retry",
-                    )
                     views.setTextViewTextSize(
                         R.id.widget_verse,
                         TypedValue.COMPLEX_UNIT_SP,
@@ -140,6 +138,9 @@ class VerseWidgetProvider : AppWidgetProvider() {
                 val sanskritText = prefs.getString(MainActivity.KEY_ORIGINAL_SCRIPT, "") ?: ""
                 val chapter = prefs.getInt(MainActivity.KEY_CHAPTER, 0)
                 val verseNumber = prefs.getInt(MainActivity.KEY_VERSE_NUMBER, 0)
+                val verseLabel = prefs.getString(MainActivity.KEY_VERSE_LABEL, "")?.ifBlank {
+                    verseNumber.toString()
+                } ?: verseNumber.toString()
                 val verseText =
                     when (displayLanguage) {
                         "sanskrit" -> sanskritText.ifBlank { englishText }
@@ -147,7 +148,7 @@ class VerseWidgetProvider : AppWidgetProvider() {
                     }
                 val referenceText =
                     if (chapter > 0 && verseNumber > 0) {
-                        "Chapter $chapter - Verse $verseNumber"
+                        "Chapter $chapter - Verse $verseLabel"
                     } else {
                         "Pinned Verse"
                     }
@@ -159,19 +160,14 @@ class VerseWidgetProvider : AppWidgetProvider() {
                     if (displayLanguage == "sanskrit") 16.5f else 14.5f,
                 )
                 views.setTextViewText(R.id.widget_reference, referenceText)
-                views.setTextViewText(R.id.widget_footer, "Open app")
             } else {
                 views.setTextViewText(
                     R.id.widget_verse,
-                    "Add widget first, then tap this card to choose a fixed verse.",
+                    "Tap to choose verse.",
                 )
                 views.setTextViewText(
                     R.id.widget_reference,
                     "No verse selected",
-                )
-                views.setTextViewText(
-                    R.id.widget_footer,
-                    "Open app",
                 )
                 views.setTextViewTextSize(
                     R.id.widget_verse,
@@ -179,23 +175,12 @@ class VerseWidgetProvider : AppWidgetProvider() {
                     14f,
                 )
             }
-
-            val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
             val pendingIntentFlags =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 } else {
                     PendingIntent.FLAG_UPDATE_CURRENT
                 }
-
-            val openAppPendingIntent = PendingIntent.getActivity(
-                context,
-                appWidgetId + REQUEST_CODE_OPEN_APP_BASE,
-                openAppIntent,
-                pendingIntentFlags,
-            )
 
             val rootPendingIntent =
                 if (isRandomMode) {
@@ -223,7 +208,6 @@ class VerseWidgetProvider : AppWidgetProvider() {
                 }
 
             views.setOnClickPendingIntent(R.id.widget_root, rootPendingIntent)
-            views.setOnClickPendingIntent(R.id.widget_footer, openAppPendingIntent)
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
@@ -243,6 +227,9 @@ class VerseWidgetProvider : AppWidgetProvider() {
             return WidgetVerse(
                 chapter = chapter,
                 verseNumber = verseNumber,
+                verseLabel = prefs.getString(randomVerseLabelKey(appWidgetId), null)
+                    ?.ifBlank { verseNumber.toString() }
+                    ?: verseNumber.toString(),
                 originalScript = sanskritText.orEmpty(),
                 translationEnglish = englishText.orEmpty(),
             )
@@ -258,6 +245,7 @@ class VerseWidgetProvider : AppWidgetProvider() {
                 .putString(randomEnglishTranslationKey(appWidgetId), verse.translationEnglish)
                 .putInt(randomChapterKey(appWidgetId), verse.chapter)
                 .putInt(randomVerseNumberKey(appWidgetId), verse.verseNumber)
+                .putString(randomVerseLabelKey(appWidgetId), verse.verseLabel)
                 .apply()
         }
 
@@ -278,7 +266,9 @@ class VerseWidgetProvider : AppWidgetProvider() {
                     for (index in 0 until jsonArray.length()) {
                         val item = jsonArray.optJSONObject(index) ?: continue
                         val chapter = item.optInt("chapter", 0)
-                        val verseNumber = parseVerseNumber(item.opt("verse_number"))
+                        val rawVerseNumber = item.opt("verse_number")
+                        val verseNumber = parseVerseNumber(rawVerseNumber)
+                        val verseLabel = parseVerseLabel(rawVerseNumber, verseNumber)
                         val originalScript = item.optString("original_script", "")
                         val translationEnglish = item.optString("translation_english", "")
 
@@ -293,6 +283,7 @@ class VerseWidgetProvider : AppWidgetProvider() {
                             WidgetVerse(
                                 chapter = chapter,
                                 verseNumber = verseNumber,
+                                verseLabel = verseLabel,
                                 originalScript = originalScript,
                                 translationEnglish = translationEnglish,
                             ),
@@ -322,6 +313,42 @@ class VerseWidgetProvider : AppWidgetProvider() {
             }
         }
 
+        private fun parseVerseLabel(rawValue: Any?, verseNumber: Int): String {
+            return when (rawValue) {
+                is String -> rawValue.trim().ifBlank { verseNumber.toString() }
+                is Number -> rawValue.toInt().toString()
+                else -> verseNumber.toString()
+            }
+        }
+
+        private fun applyTheme(views: RemoteViews, isLightTheme: Boolean) {
+            views.setImageViewResource(
+                R.id.widget_background,
+                if (isLightTheme) {
+                    R.drawable.widget_bg_light
+                } else {
+                    R.drawable.widget_bg_dark
+                },
+            )
+            views.setInt(
+                R.id.widget_verse,
+                "setBackgroundResource",
+                if (isLightTheme) {
+                    R.drawable.verse_widget_verse_surface_light
+                } else {
+                    R.drawable.verse_widget_verse_surface_dark
+                },
+            )
+            views.setTextColor(
+                R.id.widget_reference,
+                0xF2FFFFFF.toInt(),
+            )
+            views.setTextColor(
+                R.id.widget_verse,
+                0xFFFFFFFF.toInt(),
+            )
+        }
+
         private fun randomOriginalScriptKey(appWidgetId: Int): String =
             "random_original_script_$appWidgetId"
 
@@ -334,9 +361,13 @@ class VerseWidgetProvider : AppWidgetProvider() {
         private fun randomVerseNumberKey(appWidgetId: Int): String =
             "random_verse_number_$appWidgetId"
 
+        private fun randomVerseLabelKey(appWidgetId: Int): String =
+            "random_verse_label_$appWidgetId"
+
         private data class WidgetVerse(
             val chapter: Int,
             val verseNumber: Int,
+            val verseLabel: String,
             val originalScript: String,
             val translationEnglish: String,
         )
@@ -346,7 +377,6 @@ class VerseWidgetProvider : AppWidgetProvider() {
             "com.example.bhagvad_gita_app.action.RANDOMIZE_WIDGET"
         private const val REQUEST_CODE_RANDOMIZE_BASE = 11000
         private const val REQUEST_CODE_PICK_VERSE_BASE = 12000
-        private const val REQUEST_CODE_OPEN_APP_BASE = 13000
 
         private var cachedVerses: List<WidgetVerse>? = null
     }

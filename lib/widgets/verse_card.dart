@@ -23,6 +23,10 @@ class VerseCard extends StatelessWidget {
     this.showGestureHint = false,
   });
 
+  static bool _showsReferenceHeader(Verse verse) {
+    return !verse.isSummary && !verse.isRecap;
+  }
+
   static void showDetailsBottomSheet(BuildContext context, Verse verse) {
     showModalBottomSheet(
       context: context,
@@ -55,28 +59,31 @@ class VerseCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Chapter ${verse.chapter}, Verse ${verse.verseNumber}',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                  if (_showsReferenceHeader(verse)) ...[
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          verse.referenceLabel,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
+                    const SizedBox(height: 28),
+                  ] else
+                    const SizedBox(height: 8),
                   _sectionLabel('Original Sanskrit'),
                   const SizedBox(height: 10),
                   Container(
@@ -212,6 +219,7 @@ class VerseCard extends StatelessWidget {
               builder: (context, constraints) {
                 final availableHeight = constraints.maxHeight;
                 final showHint = showGestureHint && availableHeight > 420;
+                final showReferenceHeader = _showsReferenceHeader(verse);
 
                 return SizedBox(
                   width: double.infinity,
@@ -242,27 +250,32 @@ class VerseCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Chapter ${verse.chapter} - Verse ${verse.verseNumber}',
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.82),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: availableHeight > 540 ? 22 : 14),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              _primaryText(),
-                              textAlign: TextAlign.center,
-                              style: _primaryTextStyle(),
-                              maxLines: _primaryMaxLines(availableHeight),
-                              overflow: TextOverflow.ellipsis,
+                        if (showReferenceHeader) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            verse.referenceLabel,
+                            style: GoogleFonts.inter(
+                              color: Colors.white.withValues(alpha: 0.82),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        SizedBox(
+                          height: showReferenceHeader
+                              ? (availableHeight > 540 ? 22 : 14)
+                              : 10,
+                        ),
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, textConstraints) {
+                              return _buildPrimaryTextContent(
+                                context,
+                                textConstraints,
+                              );
+                            },
                           ),
                         ),
                         if (showHint) ...[
@@ -348,27 +361,52 @@ class VerseCard extends StatelessWidget {
     );
   }
 
-  int _primaryMaxLines(double availableHeight) {
-    if (displayLanguage == 'english') {
-      if (availableHeight < 430) {
-        return 5;
+  Widget _buildPrimaryTextContent(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
+    final text = _primaryText();
+    final baseStyle = _primaryTextStyle();
+    final baseFontSize = baseStyle.fontSize ?? 20;
+    final minFontSize = displayLanguage == 'sanskrit' ? 18.0 : 15.0;
+    final textDirection = Directionality.of(context);
+    final textScaler = MediaQuery.textScalerOf(context);
+
+    for (var fontSize = baseFontSize; fontSize >= minFontSize; fontSize -= 1) {
+      final candidateStyle = baseStyle.copyWith(fontSize: fontSize);
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: candidateStyle),
+        textAlign: TextAlign.center,
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout(maxWidth: constraints.maxWidth);
+
+      if (painter.height <= constraints.maxHeight) {
+        return Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: candidateStyle,
+          ),
+        );
       }
-      if (availableHeight < 520) {
-        return 7;
-      }
-      if (availableHeight < 620) {
-        return 9;
-      }
-      return 11;
     }
 
-    if (availableHeight < 430) {
-      return 4;
-    }
-    if (availableHeight < 520) {
-      return 6;
-    }
-    return 8;
+    final fallbackStyle = baseStyle.copyWith(fontSize: minFontSize);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      physics: const BouncingScrollPhysics(),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: fallbackStyle,
+          ),
+        ),
+      ),
+    );
   }
 }
 

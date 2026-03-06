@@ -15,6 +15,7 @@ class WidgetService {
             'translationEnglish': verse.translationEnglish,
             'chapter': verse.chapter,
             'verseNumber': verse.verseNumber,
+            'verseLabel': verse.verseLabel,
             'displayLanguage': language,
           });
       return updated ?? false;
@@ -84,6 +85,20 @@ class WidgetService {
       final updated = await _channel.invokeMethod<bool>(
         'setWidgetLanguage',
         <String, dynamic>{'displayLanguage': language},
+      );
+      return updated ?? false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
+  Future<bool> setTheme(String themeMode) async {
+    try {
+      final updated = await _channel.invokeMethod<bool>(
+        'setWidgetTheme',
+        <String, dynamic>{'themeMode': themeMode},
       );
       return updated ?? false;
     } on PlatformException {

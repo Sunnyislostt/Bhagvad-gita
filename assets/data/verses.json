@@ -1,12 +1,12 @@
 [
     {
-        "id": "BG_CH1_SUMMARY",
+        "id": "BG_CH1_Chapter Overview",
         "chapter": 1,
         "verse_number": 0,
         "original_script": "अथ प्रथमोऽध्यायः - अर्जुनविषादयोगः",
         "transliteration": "Arjuna Viṣhāda Yogaḥ",
         "word_meanings": "Arjuna—the warrior; Viṣhāda—dharmic crisis; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 1 Summary: The Yoga of Arjuna's Dharmic Crisis",
+        "translation_english": "Overview: The Yoga of Arjuna's Dharmic Crisis",
         "deep_dive_text": "Historically, Chapter 1 establishes the 'Dharmakshetra' not as a physical place, but as a legal and ethical jurisdiction. The crisis of Arjuna is documented not as a personal breakdown, but as the collapse of 'Kshatriya-dharma' when confronted by 'Kula-dharma' (familial duty). This tension reflects the social transition of the period.",        
         "background_hex_color": "#FFECD2"
     },
@@ -533,18 +533,18 @@
         "verse_number": 48,
         "original_script": "अर्जुनविषादयोगः",
         "transliteration": "Arjuna Viṣhāda Yogaḥ",
-        "translation_english": "Chapter 1: The Crisis of Identity",
+        "translation_english": "Recap 1: The Crisis of Identity",
         "deep_dive_text": "The narrative begins with a profound crisis of conscience. On the battlefield of Kurukshetra, the preeminent warrior Arjuna is paralyzed by the moral weight of fighting his own kin. This chapter represents the 'dark night of the soul'—the state of absolute vulnerability (śaraṇāgati) that precedes the transmission of higher wisdom. Historically, it establishes the conflict as one of 'Dharma' (righteousness) versus 'Adharma' (moral decay).",        
         "background_hex_color": "#FFECD2"
     },
     {
-        "id": "BG_CH2_SUMMARY",
+        "id": "BG_CH2_Chapter Overview",
         "chapter": 2,
         "verse_number": 0,
         "original_script": "अथ द्वितीयोऽध्यायः - साङ्ख्ययोगः",
         "transliteration": "Sāṅkhya Yogaḥ",
         "word_meanings": "Sāṅkhya—analytical deduction; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 2 Summary: The Yoga of Analytical Knowledge",
+        "translation_english": "Overview: The Yoga of Analytical Knowledge",
         "deep_dive_text": "This chapter serves as the intellectual synthesis of the Samkhya (analytical) and Yoga (practical) traditions. Krishna introduces the indestructible nature of the 'Atman' (Self) versus the 'Deha' (Body), providing a metaphysical framework for action. It establishes 'Samatvam' (equanimity) as the benchmark for wisdom, transitioning Arjuna from a state of paralysis to a state of detached, dharmic engagement.",
         "background_hex_color": "#D4FC79"
     },
@@ -1346,18 +1346,18 @@
         "verse_number": 73,
         "original_script": "साङ्ख्ययोगः",
         "transliteration": "Sāṅkhya Yogaḥ",
-        "translation_english": "Chapter 2: The Immortal Soul",
+        "translation_english": "Recap : The Crisis of Identity",
         "deep_dive_text": "Krishna begins his teaching by shifting Arjuna's perspective from the temporary body to the eternal Soul (Atman). He explains that the Soul cannot be burned, wet, or killed—it simply changes bodies like a person changes clothes. He introduces the concept of 'Sthitaprajna'—the person of steady wisdom who remains calm in both success and failure.",
         "background_hex_color": "#D4FC79"
     },
     {
-        "id": "BG_CH3_SUMMARY",
+        "id": "BG_CH3_Chapter Overview",
         "chapter": 3,
         "verse_number": 0,
         "original_script": "अथ तृतीयोऽध्यायः - कर्मयोगः",
         "transliteration": "Karma Yogaḥ",
         "word_meanings": "Karma—action; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 3 Summary: The Yoga of Disciplined Action",
+        "translation_english": "Overview: The Yoga of Disciplined Action",
         "deep_dive_text": "Chapter 3 transitions the text from early Vedic ritualism to the internalization of sacrifice. Krishna explains that physical inaction is impossible; thus, the path to liberation lies in 'Karma Yoga'—performing action as 'Yajña' (selfless sacrifice). By acting in alignment with the cosmic cycle (*Chakra*), the individual contributes to the maintenance of the world (*Lokasamgraha*) without incurring personal karmic debt.",
         "background_hex_color": "#A1C4FD"
     },
@@ -1840,19 +1840,19 @@
         "verse_number": 44,
         "original_script": "कर्मयोगः",
         "transliteration": "Karma Yogaḥ",
-        "translation_english": "Chapter 3: The Path of Action",
+        "translation_english": "Recap: The Path of Action",
         "deep_dive_text": "Krishna explains that since we cannot stop acting (even breathing is an action), the secret to freedom is not 'inaction,' but 'selfless action.' By performing our duties as a sacrifice (Yajna) for the world rather than for personal profit, we turn work into a spiritual practice. He identifies 'Lust' and 'Anger' as the primary enemies that cloud our judgment.",
         "background_hex_color": "#A1C4FD"
     },
     {
-        "id": "BG_CH4_SUMMARY",
+        "id": "BG_CH4_Chapter Overview",
         "chapter": 4,
         "verse_number": 0,
         "original_script": "अथ चतुर्थोऽध्यायः - ज्ञानकर्मसंन्यासयोगः",
         "transliteration": "Jñāna Karma Sanyāsa Yogaḥ",
         "word_meanings": "Jñāna—knowledge; Karma—action; Sanyāsa—renunciation; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 4 Summary: The Yoga of Knowledge and the Disciplines of Action",
-        "deep_dive_text": "Summary: Krishna reveals the Gita as part of a primordial solar tradition, tracing its lineage back to Vivasvan. He explains the nature of His 'Avatara' (divine descent): appearing to restore the cosmic order (Dharma) when it falls into decay. The core lesson introduces the paradox of 'akarma' (inaction in action)—performing duty with such wisdom that the act itself becomes a sacrifice. The chapter concludes by presenting 'Jñāna' (transcendental knowledge) as the ultimate sword to sever the knots of doubt and ignorance.",        
+        "translation_english": "Chapter 4 Overview: The Yoga of Knowledge and the Disciplines of Action",
+        "deep_dive_text": "Overview: Krishna reveals the Gita as part of a primordial solar tradition, tracing its lineage back to Vivasvan. He explains the nature of His 'Avatara' (divine descent): appearing to restore the cosmic order (Dharma) when it falls into decay. The core lesson introduces the paradox of 'akarma' (inaction in action)—performing duty with such wisdom that the act itself becomes a sacrifice. The chapter concludes by presenting 'Jñāna' (transcendental knowledge) as the ultimate sword to sever the knots of doubt and ignorance.",        
         "background_hex_color": "#FFF9C4"
     },
     {
@@ -2309,22 +2309,22 @@
     {
         "id": "RECAP_CH_04",
         "chapter": 4,
-        "verse_number": 0,
+        "verse_number": 43,
         "original_script": "ज्ञानकर्मसंन्यासयोगः",
         "transliteration": "Jñāna Karma Sanyāsa Yogaḥ",
-        "translation_english": "Chapter 4: The Fire of Wisdom",
+        "translation_english": "Recap: The Fire of Wisdom",
         "deep_dive_text": "Krishna reveals the history of the Gita as a timeless science. He explains his own divine nature as an Avatar who descends to restore balance when unrighteousness rises. He introduces the 'Sword of Knowledge,' which has the power to burn away all past karmic debt and cut through the bonds of doubt once and for all.",
         "background_hex_color": "#FFF9C4"
     },
-    {
-        "id": "BG_CH5_SUMMARY",
+    {   
+        "id": "BG_CH5_Chapter Overview",
         "chapter": 5,
         "verse_number": 0,
         "original_script": "अथ पञ्चमोऽध्यायः - कर्मसंन्यासयोगः",
         "transliteration": "Karma Sanyāsa Yogaḥ",
         "word_meanings": "Karma—action; Sanyāsa—renunciation; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 5 Summary: The Yoga of Renunciation",
-        "deep_dive_text": "Summary: Arjuna is still torn between two paths: should he meditate in a forest or fight a war? Krishna reveals that the 'Renunciation of Action' and 'Action in Devotion' lead to the same goal, but the path of action is easier and more practical. A true 'Sanyasi' isn't someone who wears orange robes, but someone who works in the world without any sense of ownership or ego. This chapter teaches how to be 'in the world, but not of it,' like a lotus leaf that stays dry even in the middle of a pond.",
+        "translation_english": "Overview: The Yoga of Renunciation",
+        "deep_dive_text": "Arjuna is still torn between two paths: should he meditate in a forest or fight a war? Krishna reveals that the 'Renunciation of Action' and 'Action in Devotion' lead to the same goal, but the path of action is easier and more practical. A true 'Sanyasi' isn't someone who wears orange robes, but someone who works in the world without any sense of ownership or ego. This chapter teaches how to be 'in the world, but not of it,' like a lotus leaf that stays dry even in the middle of a pond.",
         "background_hex_color": "#F3E5F5"
     },
     {
@@ -2647,13 +2647,23 @@
         "background_hex_color": "#F3E5F5"
     },
     {
-        "id": "BG_CH6_SUMMARY",
+        "id": "RECAP_CH_5",
+        "chapter": 5,
+        "verse_number": 30,
+        "original_script": "कर्मसंन्यासयोगः",
+        "transliteration": "Karma Sannyāsa Yogaḥ",
+        "translation_english": "Chapter 5: The Yoga of Action and Knowledge",
+        "deep_dive_text": "Chapter 5 resolves the tension between 'doing' and 'being.' Krishna explains that while a monk might renounce the world, a Karma Yogi renounces the 'ego' within the world. This is the art of performing every task as a divine offering, remaining as untouched by sin or attachment as a lotus leaf is by water. The true sage sees with equal vision a learned scholar, a cow, an elephant, and even an outcast, recognizing the same Divine Spark in all. By mastering the senses and centering the intellect, the seeker attains a peace that is independent of external circumstances.",
+        "background_hex_color": "#E3F2FD"
+    },
+    {
+        "id": "BG_CH6_Chapter Overview",
         "chapter": 6,
         "verse_number": 0,
         "original_script": "अथ षष्ठोऽध्यायः - आत्मसंयमयोगः",
         "transliteration": "Ātma Saṁyama Yogaḥ",
         "word_meanings": "Ātma—self; Saṁyama—control/meditation; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 6 Summary: The Yoga of Meditation",
+        "translation_english": "Overview: The Yoga of Meditation",
         "deep_dive_text": "This chapter codifies the physical and mental techniques for meditation (*Dhyana*). It outlines proto-Yoga practices, such as choosing a clean place and sitting on 'kusha' grass, while emphasizing that the mind can be either the soul's greatest ally or its most relentless adversary. It introduces the doctrine of spiritual 'Samskaras'—the latent impressions that allow a seeker to carry spiritual progress across multiple lifetimes.",
         "background_hex_color": "#E8F5E9"
     },
@@ -3175,14 +3185,24 @@
         "background_hex_color": "#E8F5E9"
     },
     {
-        "id": "BG_CH7_SUMMARY",
+        "id": "RECAP_CH_6",
+        "chapter": 6,
+        "verse_number": 0,
+        "original_script": "आत्मसंयमयोगः",
+        "transliteration": "Ātma Sanyama Yogaḥ",
+        "translation_english": "Recap: The Yoga of Self-Control and Meditation",
+        "deep_dive_text": "This is the manual for the inner journey. Krishna reveals that the mind can be your greatest friend or your most treacherous enemy. Through the practice of Dhyana (meditation), one learns to sit still, breathe with awareness, and focus the wandering mind on the Supreme. It’s not about extreme asceticism, but about a balanced lifestyle—regulated eating, sleeping, and working. Krishna reassures Arjuna that no effort on this path is ever lost; even if one falls short in this life, the spiritual momentum carries over to the next, eventually leading to the ultimate union.",
+        "background_hex_color": "#F3E5F5"
+    },
+    {
+        "id": "BG_CH7_Chapter Overview",
         "chapter": 7,
         "verse_number": 0,
         "original_script": "अथ सप्तमोऽध्यायः - ज्ञानविज्ञानयोगः",
         "transliteration": "Jñāna Vijñāna Yogaḥ",
         "word_meanings": "Jñāna—theory/knowledge; Vijñāna—realization/experience; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 7 Summary: Knowledge of the Ultimate",
-        "deep_dive_text": "Summary : How do we recognize the Divine in the physical world? Krishna begins by revealing that there is nothing higher than Him. He explains that the world is composed of two energies: the material (earth, water, fire, etc.) and the spiritual (the life force). This chapter is the 'Grand Unified Theory' of the Gita, showing that everything we see, hear, and touch is actually a thread in the cosmic fabric of the Supreme.",
+        "translation_english": "Overview: Knowledge of the Ultimate",
+        "deep_dive_text": "How do we recognize the Divine in the physical world? Krishna begins by revealing that there is nothing higher than Him. He explains that the world is composed of two energies: the material (earth, water, fire, etc.) and the spiritual (the life force). This chapter is the 'Grand Unified Theory' of the Gita, showing that everything we see, hear, and touch is actually a thread in the cosmic fabric of the Supreme.",
         "background_hex_color": "#FFF3E0"
     },
     {
@@ -3450,13 +3470,23 @@
         "background_hex_color": "#FFF3E0"
     },
     {
-        "id": "BG_CH8_SUMMARY",
+        "id": "RECAP_CH_7",
+        "chapter": 7,
+        "verse_number": 0,
+        "original_script": "ज्ञानविज्ञानयोगः",
+        "transliteration": "Jñāna Vijñāna Yogaḥ",
+        "translation_english": "Recap: Knowledge of the Ultimate Truth",
+        "deep_dive_text": "Krishna shifts from 'how to practice' to 'whom to know.' He describes His material and spiritual energies, explaining that everything in the universe—from the taste of water to the light of the sun—is a manifestation of His presence. He identifies four types of people who turn to Him: the distressed, the seeker of wealth, the inquisitive, and the wise. While the first three seek something *from* God, the wise seek God *alone*. This chapter is a call to look past the 'Maya' (illusion) of the three modes of nature and recognize the singular Divine Reality behind the diversity of the world.",
+        "background_hex_color": "#E8F5E9"
+    },
+    {
+        "id": "BG_CH8_Chapter Overview",
         "chapter": 8,
         "verse_number": 0,
         "original_script": "अथ अष्टमोऽध्यायः - अक्षरब्रह्मयोगः",
         "transliteration": "Akṣhara Brahma Yogaḥ",
         "word_meanings": "Akṣhara—indestructible; Brahma—the Absolute; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 8 Summary: The Yoga of the Indestructible Absolute",
+        "translation_english": "Overview: The Yoga of the Indestructible Absolute",
         "deep_dive_text": "This chapter codifies the technical process of 'Anta-kale' (transition at death). Historically, it reflects the transition from Vedic external ritualism to Upanishadic internalization. It details 'Yoga-dharana'—the concentration of the life-breath (Prana)—as a systematic discipline rather than a mystical occurrence. It establishes the 'Akshara' (Imperishable) as the ultimate destination, distinguishing it from the 'Kshara' (Perishable) material cycle.",
         "background_hex_color": "#ECEFF1"
     },
@@ -3769,13 +3799,23 @@
         "background_hex_color": "#ECEFF1"
     },
     {
-        "id": "BG_CH9_SUMMARY",
-        "chapter": 9,
+        "id": "RECAP_CH_8",
+        "chapter": 8,
+        "verse_number": 0,
+        "original_script": "अक्षरब्रह्मयोगः",
+        "transliteration": "Akṣhara Brahma Yogaḥ",
+        "translation_english": "Recap: The Yoga of the Eternal Godhead",
+        "deep_dive_text": "Chapter 8 focuses on the ultimate destination: the moment of death. Krishna explains that the state of mind at the final breath determines our next destination. Therefore, one must practice 'constant remembrance' throughout life so that the mind naturally gravitates toward the Divine at the end. He distinguishes between the temporary, unmanifest realms of creation and the 'Supreme Eternal Unmanifest'—the home from which there is no return to this world of suffering. It is a powerful reminder that while time consumes everything, the soul that is anchored in the Eternal transcends the cycles of birth and death.",
+        "background_hex_color": "#FFFDE7"
+    },
+    {
+        "id": "BG_CH9_Chapter Overview",
+        "chapter": 9    ,
         "verse_number": 0,
         "original_script": "अथ नवमोऽध्यायः - राजविद्याराजगुह्ययोगः",
         "transliteration": "Rāja-Vidyā Rāja-Guhya Yogaḥ",
         "word_meanings": "Rāja—Sovereign; Vidyā—Knowledge; Guhya—Secret; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 9 Summary: The Yoga of Sovereign Knowledge and the Sovereign Secret",
+        "translation_english": "Overview: The Yoga of Sovereign Knowledge and the Sovereign Secret",
         "deep_dive_text": "Chapter 9 represents the historical consolidation of the 'Bhakti' (devotional) movement into the Vedic framework. It reveals the 'Sovereign Knowledge'—the panentheistic nature of the Divine as both the origin and the pervading essence of the universe. It explicitly critiques the 'transactional' nature of Vedic rituals (seeking heaven/Svarga) and proposes a direct, non-intermediated relationship with the Supreme.",
         "background_hex_color": "#E0F7FA"
     },
@@ -4159,18 +4199,18 @@
         "verse_number": 35,
         "original_script": "राजविद्याराजगुह्ययोगः",
         "transliteration": "Rāja Vidyā Rāja Guhya Yogaḥ",
-        "translation_english": "Chapter 9: The Yoga of the Sovereign Science and Sovereign Secret",
+        "translation_english": "Recap: The Yoga of the Sovereign Science and Sovereign Secret",
         "deep_dive_text": "Chapter 9 reveals the most confidential knowledge of the Gita. Krishna explains that the entire universe is pervaded by His unmanifested form. All beings rest in Him, yet He is completely independent of them. He assures that anyone, regardless of their background or past mistakes, can attain ultimate liberation simply by offering their daily actions, no matter how small, with pure devotion. The chapter concludes with the powerful guarantee that His devotee never perishes.",
         "background_hex_color": "#E0F7FA"
     },
     {
-        "id": "BG_CH10_SUMMARY",
+        "id": "BG_CH10_Chapter Overview",
         "chapter": 10,
         "verse_number": 0,
         "original_script": "अथ दशमोऽध्यायः - विभूतियोगः",
         "transliteration": "Vibhūti Yogaḥ",
         "word_meanings": "Vibhūti—Divine opulence/manifestation; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 10 Summary: The Yoga of Divine Manifestations",
+        "translation_english":"Overview: The Yoga of Divine Manifestations",
         "deep_dive_text": "This chapter provides a categorical inventory of the Divine's presence in the material world. Historically, it serves as a 'bridge' between abstract monism and concrete polytheism by identifying the 'best' of every category (e.g., the Lion among beasts, the Ganges among rivers) as a direct indicator of the Absolute. It establishes the 'Chatur-Shloki' (Verses 8-11) as the philosophical summary of the entire text.",
         "background_hex_color": "#FFF3E0"
     },
@@ -4631,18 +4671,18 @@
         "verse_number": 43,
         "original_script": "विभूतियोगः",
         "transliteration": "Vibhūti Yogaḥ",
-        "translation_english": "Chapter 10: The Yoga of Divine Glories",
+        "translation_english": "Recap: The Yoga of Divine Glories",
         "deep_dive_text": "In Chapter 10, Krishna changes the way Arjuna sees the world. Instead of seeing a collection of random objects, Arjuna learns to see the universe as an exhibition of Divine opulence. Krishna reveals that He is the seed of all existence, the intelligence of the wise, and the strength of the strong. He concludes by stating that all beautiful and glorious things spring from just a single spark of His infinite splendor, shifting Arjuna from doubt into profound devotion.",
         "background_hex_color": "#FFF3E0"
     },
     {
-        "id": "BG_CH11_SUMMARY",
+        "id": "BG_CH11_Chapter Overview",
         "chapter": 11,
         "verse_number": 0,
         "original_script": "अथ एकादशोऽध्यायः - विश्वरूपदर्शनयोगः",
         "transliteration": "Viśhvarūpa Darśhana Yogaḥ",
         "word_meanings": "Viśhvarūpa—Universal Form; Darśhana—Vision/Revelation; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 11 Summary: The Yoga of the Vision of the Universal Form",
+        "translation_english": "Overview: The Yoga of the Vision of the Universal Form",
         "deep_dive_text": "Chapter 11 is the literary and theological climax of the Gita. It presents a 'Theophany'—a direct revelation of the Divine as 'Kāla' (Time/Destruction). Historically, it transitions Krishna from a personal teacher and tribal hero to the 'Ishvara' (Supreme Lord) of the entire cosmos. The terrifying nature of the vision serves to destroy Arjuna's remaining ego-attachments by showing the inevitability of the temporal cycle.",
         "background_hex_color": "#E1BEE7"
     },
@@ -5235,18 +5275,18 @@
         "verse_number": 56,
         "original_script": "विश्वरूपदर्शनयोगः",
         "transliteration": "Viśhvarūpa Darśhana Yogaḥ",
-        "translation_english": "Chapter 11: The Yoga of the Vision of the Universal Form",
+        "translation_english": "Recap: The Yoga of the Vision of the Universal Form",
         "deep_dive_text": "Chapter 11 is the awe-inspiring climax of the Bhagavad Gita's visual theology. Arjuna receives 'divine eyes' and witnesses the staggering, terrifying Vishvarupa—the Universal Form where all of space, time, gods, demons, and the inevitable destruction of the cosmic order are contained within Krishna. Overwhelmed and terrified by this blazing, all-devouring form of Time, Arjuna begs Krishna to return to His familiar, gentle shape. Krishna obliges, concluding with the ultimate lesson: the Infinite cannot be purchased by intelligence or austerity; it can only be realized through pure, undivided love.",
         "background_hex_color": "#E1BEE7"
     },
     {
-        "id": "BG_CH12_SUMMARY",
+        "id": "BG_CH12_Chapter Overview",
         "chapter": 12,
         "verse_number": 0,
         "original_script": "अथ द्वादशोऽध्यायः - भक्तियोगः",
         "transliteration": "Bhakti Yogaḥ",
         "word_meanings": "Bhakti—devotion/participation; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 12 Summary: The Yoga of Devotion",
+        "translation_english": "Overview: The Yoga of Devotion",
         "deep_dive_text": "This chapter addresses the historical debate between 'Saguna' (worship of the Divine with form) and 'Nirguna' (meditation on the formless Absolute). Krishna identifies the 'Saguna' path as more practical for embodied beings. It concludes with a list of 'Bhakta-lakshanas'—the behavioral traits of an ideal practitioner—emphasizing equanimity, lack of malice, and internal independence.",
         "background_hex_color": "#FCE4EC"
     },
@@ -5454,18 +5494,18 @@
         "verse_number": 21,
         "original_script": "भक्तियोगः",
         "transliteration": "Bhakti Yogaḥ",
-        "translation_english": "Chapter 12: The Yoga of Devotion",
+        "translation_english": "Recap: The Yoga of Devotion",
         "deep_dive_text": "Chapter 12 establishes that personal devotion (Bhakti) is superior and more practical for embodied beings than the path of the formless absolute. Krishna provides a compassionate, descending ladder of practices: from unbroken meditation, to regulated practice, to working for the Divine, and finally to simply renouncing the fruits of work. He concludes by detailing the 39 qualities of a true devotee—qualities rooted entirely in emotional intelligence, equanimity, and unconditional love.",
         "background_hex_color": "#FCE4EC"
     },
     {
-        "id": "BG_CH13_SUMMARY",
+        "id": "BG_CH13_Chapter Overview",
         "chapter": 13,
         "verse_number": 0,
         "original_script": "अथ त्रयोदशोऽध्यायः - क्षेत्रक्षेत्रज्ञविभागयोगः",
         "transliteration": "Kṣhetra-Kṣhetrajña Vibhāga Yogaḥ",
         "word_meanings": "Kṣhetra—the Field; Kṣhetrajña—the Knower of the Field; Vibhāga—Division/Discrimination; Yogaḥ—the path of synthesis.",
-        "translation_english": "Chapter 13 Summary: The Yoga of Discriminating the Field and the Knower",
+        "translation_english": "Overview: The Yoga of Discriminating the Field and the Knower",
         "deep_dive_text": "Chapter 13 marks the beginning of the final third of the Gita, focusing on 'Jnana' (Knowledge). It utilizes classical Samkhya philosophy to categorize reality into the 'Kshetra' (the body/mind/material nature) and the 'Kshetrajna' (the observing soul). Historically, this chapter is crucial for defining the 'Twenty Attributes of Knowledge' (Verses 7-11), which are predominantly ethical and psychological rather than academic.",
         "background_hex_color": "#E8EAF6"
     },
@@ -5838,19 +5878,19 @@
         "verse_number": 35,
         "original_script": "क्षेत्रक्षेत्रज्ञविभागयोगः",
         "transliteration": "Kṣhetra Kṣhetrajña Vibhāga Yogaḥ",
-        "translation_english": "Chapter 13: The Yoga of the Field and the Knower of the Field",
+        "translation_english": "Recap: The Yoga of the Field and the Knower of the Field",
         "deep_dive_text": "Chapter 13 dissects reality into two distinct components: the 'Kshetra' (the Field, which includes the physical body, mind, and emotions) and the 'Kshetrajna' (the Knower of the Field, the conscious, eternal soul). Krishna explains that true knowledge is the ability to perfectly distinguish between the observer and the observed. By realizing that we are the silent witness and not the mechanical fluctuations of nature, we free ourselves from karmic entanglement and recognize the Supreme Soul residing equally in all beings.",
         "background_hex_color": "#E8EAF6"
     },
     {
-        "id": "BG_CH14_SUMMARY",
+        "id": "BG_CH14_Chapter Overview",
         "chapter": 14,
         "verse_number": 0,
         "original_script": "अथ चतुर्दशोऽध्यायः - गुणत्रयविभागयोगः",
         "transliteration": "Guṇa Traya Vibhāga Yogaḥ",
         "word_meanings": "Guṇa—modes of material nature; Traya—three; Vibhāga—divisions; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 14 Summary: The Yoga of the Three Modes of Material Nature",
-        "deep_dive_text": "Summary: Chapter 14 acts as the psychological operating manual for the human mind. Krishna explains that the entire material universe is driven by three invisible forces or 'Gunas': Sattva (Goodness/Clarity), Rajas (Passion/Action), and Tamas (Ignorance/Inertia). These modes constantly compete for dominance in our minds, dictating our behavior, diet, and destiny. By learning to identify which 'mode' is currently driving the steering wheel, a seeker can consciously shift into Goodness, and eventually transcend all three modes entirely to attain pure spiritual freedom.",
+        "translation_english": "Overview: The Yoga of the Three Modes of Material Nature",
+        "deep_dive_text": "Chapter 14 acts as the psychological operating manual for the human mind. Krishna explains that the entire material universe is driven by three invisible forces or 'Gunas': Sattva (Goodness/Clarity), Rajas (Passion/Action), and Tamas (Ignorance/Inertia). These modes constantly compete for dominance in our minds, dictating our behavior, diet, and destiny. By learning to identify which 'mode' is currently driving the steering wheel, a seeker can consciously shift into Goodness, and eventually transcend all three modes entirely to attain pure spiritual freedom.",
         "background_hex_color": "#FFF59D"
     },
     {
@@ -6150,14 +6190,14 @@
         "background_hex_color": "#FFF59D"
     },
     {
-        "id": "BG_CH15_SUMMARY",
+        "id": "BG_CH15_Chapter Overview",
         "chapter": 15,
         "verse_number": 0,
         "original_script": "अथ पञ्चदशोऽध्यायः - पुरुषोत्तमयोगः",
         "transliteration": "Atha Pañchadaśho ’dhyāyaḥ - Puruṣhottama Yogaḥ",
         "word_meanings": "Puruṣha—person; Uttama—supreme; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 15 Summary: The Yoga of the Supreme Person",
-        "deep_dive_text": "Summary: Chapter 15 is often considered the most condensed and profound chapter in the Gita, containing the absolute essence of Vedic philosophy in just 20 verses. Krishna uses the metaphor of an upside-down Banyan tree to describe the entangled material world, teaching that the only way to escape is to cut down this tree with the 'weapon of detachment.' He then reveals Himself as the 'Purushottama'—the Supreme Person who transcends both the fallible material world and the infallible spiritual souls, sustaining everything from the sun's light to the digestion in our stomachs.",
+        "translation_english": "Overview: The Yoga of the Supreme Person",
+        "deep_dive_text": "Chapter 15 is often considered the most condensed and profound chapter in the Gita, containing the absolute essence of Vedic philosophy in just 20 verses. Krishna uses the metaphor of an upside-down Banyan tree to describe the entangled material world, teaching that the only way to escape is to cut down this tree with the 'weapon of detachment.' He then reveals Himself as the 'Purushottama'—the Supreme Person who transcends both the fallible material world and the infallible spiritual souls, sustaining everything from the sun's light to the digestion in our stomachs.",
         "background_hex_color": "#E0F2F1"
     },
     {
@@ -6375,19 +6415,19 @@
         "verse_number": 21,
         "original_script": "पुरुषोत्तमयोगः",
         "transliteration": "Puruṣhottama Yogaḥ",
-        "translation_english": "Chapter 15: The Yoga of the Supreme Person",
+        "translation_english": "Recap: The Yoga of the Supreme Person",
         "deep_dive_text": "Chapter 15 reveals the path of cutting the upside-down Banyan tree of material entanglement using the sharp weapon of detachment. It transitions from explaining the transmigration of the soul and the Divine presence sustaining the universe, to the ultimate philosophical revelation: the identity of the Purushottama. By understanding the Supreme Person who transcends both the fallible and infallible worlds, the seeker attains the highest perfection of wisdom and devotion.",
         "background_hex_color": "#E0F2F1"
     },
     {
-        "id": "BG_CH16_SUMMARY",
+        "id": "BG_CH16_Chapter Overview",
         "chapter": 16,
         "verse_number": 0,
         "original_script": "अथ षोडशोऽध्यायः - दैवासुरसम्पद्विभागयोगः",
         "transliteration": "Daivāsura Sampad Vibhāga Yogaḥ",
         "word_meanings": "Daiva—divine; Asura—demoniac; Sampad—qualities/nature; Vibhāga—division; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 16 Summary: The Yoga of the Divine and Demoniac Natures",
-        "deep_dive_text": "Summary: Chapter 16 draws a sharp, unmistakable line between two fundamentally opposite psychological and spiritual trajectories: the Divine (Daivi) nature and the Demoniac (Asuri) nature. Krishna outlines 26 qualities of a god-conscious person destined for liberation, followed by the toxic traits of the arrogant and materialistic, who bind themselves to endless suffering. This chapter is a stark behavioral mirror, urging the seeker to ruthlessly eliminate ego, anger, and lust, which are declared to be the three gateways to hell.",
+        "translation_english": "Overview: The Yoga of the Divine and Demoniac Natures",
+        "deep_dive_text": "Chapter 16 draws a sharp, unmistakable line between two fundamentally opposite psychological and spiritual trajectories: the Divine (Daivi) nature and the Demoniac (Asuri) nature. Krishna outlines 26 qualities of a god-conscious person destined for liberation, followed by the toxic traits of the arrogant and materialistic, who bind themselves to endless suffering. This chapter is a stark behavioral mirror, urging the seeker to ruthlessly eliminate ego, anger, and lust, which are declared to be the three gateways to hell.",
         "background_hex_color": "#E8F5E9"
     },
     {
@@ -6660,19 +6700,19 @@
         "verse_number": 25,
         "original_script": "दैवासुरसम्पद्विभागयोगः",
         "transliteration": "Daivāsura Sampad Vibhāga Yogaḥ",
-        "translation_english": "Chapter 16: The Yoga of the Divine and Demoniac Natures",
+        "translation_english": "Recap: The Yoga of the Divine and Demoniac Natures",
         "deep_dive_text": "Chapter 16 provides a stark behavioral mirror. Krishna details the 26 qualities of the Divine Nature—rooted in fearlessness, purity, and compassion—which guarantee spiritual liberation. He then ruthlessly exposes the Demoniac Nature—driven by pride, atheism, and the insatiable triad of lust, anger, and greed (the three gates to hell). The chapter concludes that human beings cannot rely on their own whimsical desires for guidance; they must anchor their actions in the timeless wisdom of the scriptures to achieve true perfection.",
         "background_hex_color": "#E8F5E9"
     },
     {
-        "id": "BG_CH17_SUMMARY",
+        "id": "BG_CH17_Chapter Overview",
         "chapter": 17,
         "verse_number": 0,
         "original_script": "अथ सप्तदशोऽध्यायः - श्रद्धात्रयविभागयोगः",
         "transliteration": "Atha Saptadaśho ’dhyāyaḥ - Śhraddhā Traya Vibhāga Yogaḥ",
         "word_meanings": "Śhraddhā—faith; Traya—threefold; Vibhāga—divisions; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 17 Summary: The Yoga of the Threefold Divisions of Faith",
-        "deep_dive_text": "Summary: Chapter 17 picks up immediately where Chapter 16 left off. Arjuna asks a very practical question: 'What happens to someone who has faith, but doesn't follow the scriptures?' In response, Krishna introduces the psychology of 'Shraddha' (Faith). He explains that every single human being has faith, but that faith is colored by the three modes of nature (Sattva, Rajas, and Tamas). This chapter acts as a diagnostic toolkit, breaking down how our modes dictate the food we eat, the charity we give, the austerities we perform, and the gods we worship.",
+        "translation_english": "Overview: The Yoga of the Threefold Divisions of Faith",
+        "deep_dive_text": "Overview: Chapter 17 picks up immediately where Chapter 16 left off. Arjuna asks a very practical question: 'What happens to someone who has faith, but doesn't follow the scriptures?' In response, Krishna introduces the psychology of 'Shraddha' (Faith). He explains that every single human being has faith, but that faith is colored by the three modes of nature (Sattva, Rajas, and Tamas). This chapter acts as a diagnostic toolkit, breaking down how our modes dictate the food we eat, the charity we give, the austerities we perform, and the gods we worship.",
         "background_hex_color": "#F3E5F5"
     },
     {
@@ -6978,19 +7018,19 @@
         "verse_number": 29,
         "original_script": "श्रद्धात्रयविभागयोगः",
         "transliteration": "Śhraddhā Traya Vibhāga Yogaḥ",
-        "translation_english": "Chapter 17: The Yoga of the Threefold Divisions of Faith",
+        "translation_english": "Recap: The Yoga of the Threefold Divisions of Faith",
         "deep_dive_text": "Chapter 17 acts as a diagnostic manual for the soul. It reveals that our innate faith, the food we crave, the charity we give, and the discipline we practice are all dictated by the three modes of nature. Krishna teaches that actions performed in goodness elevate us, those in passion cause stress, and those in ignorance lead to degradation. Ultimately, any action can be purified and made eternal by performing it with selfless devotion and dedicating it to the Supreme with the mantra 'Om Tat Sat'.",
         "background_hex_color": "#F3E5F5"
     },
     {
-        "id": "BG_CH18_SUMMARY",
+        "id": "BG_CH18_Chapter Overview",
         "chapter": 18,
         "verse_number": 0,
         "original_script": "अथ अष्टादशोऽध्यायः - मोक्षसन्न्यासयोगः",
         "transliteration": "Atha Aṣhṭādaśho ’dhyāyaḥ - Mokṣha Sannyāsa Yogaḥ",
         "word_meanings": "Mokṣha—liberation; Sannyāsa—renunciation; Yogaḥ—the path of connection.",
-        "translation_english": "Chapter 18 Summary: The Yoga of Liberation Through Renunciation",
-        "deep_dive_text": "Summary: Chapter 18 is the grand finale and master summary of the entire Bhagavad Gita. Arjuna asks for the definitive difference between formal renunciation (Sannyasa) and internal detachment (Tyaga). Krishna brilliantly explains that true renunciation doesn't mean quitting your job or abandoning your duties; it means performing your natural duties without any selfish attachment to the results. He breaks down how the three modes influence our knowledge, action, and intellect, eventually leading to the ultimate conclusion: abandoning all varieties of religion and simply surrendering to the Supreme with absolute love.",
+        "translation_english": "OverviewR: The Yoga of Liberation Through Renunciation",
+        "deep_dive_text": "Overview: Chapter 18 is the grand finale and master summary of the entire Bhagavad Gita. Arjuna asks for the definitive difference between formal renunciation (Sannyasa) and internal detachment (Tyaga). Krishna brilliantly explains that true renunciation doesn't mean quitting your job or abandoning your duties; it means performing your natural duties without any selfish attachment to the results. He breaks down how the three modes influence our knowledge, action, and intellect, eventually leading to the ultimate conclusion: abandoning all varieties of religion and simply surrendering to the Supreme with absolute love.",
         "background_hex_color": "#FFF3E0"
     },
     {
@@ -7843,10 +7883,10 @@
     {
         "id": "RECAP_CH_18",
         "chapter": 18,
-        "verse_number": 78,
+        "verse_number": 79,
         "original_script": "मोक्षसन्न्यासयोगः",
         "transliteration": "Mokṣha Sannyāsa Yogaḥ",
-        "translation_english": "Chapter 18: The Yoga of Liberation Through Renunciation",
+        "translation_english": "The END: The Yoga of Liberation Through Renunciation",
         "deep_dive_text": "Chapter 18 brings the entire Bhagavad Gita to a triumphant close. Krishna resolves the debate on renunciation, clarifying that true freedom is not abandoning your duties, but abandoning the selfish desires and ego tied to those duties. He details how the three modes (Gunas) color everything from our intellect to our happiness, explaining that spiritual perfection is found by doing one's own natural work as an offering to God. Finally, Krishna delivers His ultimate, most confidential command: drop all rigid rules and simply surrender to the Divine with pure love. Arjuna, fully awakened and free from doubt, picks up his bow, ready to fight the battle of life. The text concludes with Sanjaya’s ecstatic realization that wherever divine grace and dedicated human effort unite, absolute victory and morality are guaranteed.",
         "background_hex_color": "#FFF3E0"
     }

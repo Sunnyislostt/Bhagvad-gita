@@ -2,6 +2,7 @@ class Verse {
   final String id;
   final int chapter;
   final int verseNumber;
+  final String verseLabel;
   final String originalScript;
   final String transliteration;
   final String translationEnglish;
@@ -13,6 +14,7 @@ class Verse {
     required this.id,
     required this.chapter,
     required this.verseNumber,
+    required this.verseLabel,
     required this.originalScript,
     required this.transliteration,
     required this.translationEnglish,
@@ -22,12 +24,11 @@ class Verse {
   });
 
   factory Verse.fromJson(Map<String, dynamic> json) {
+    final rawVerseNumber = json['verse_number'] ?? json['verse_id'] ?? json['verse'];
     final chapter = _asInt(
       json['chapter'] ?? json['chapter_number'] ?? json['chapter_id'],
     );
-    final verseNumber = _asInt(
-      json['verse_number'] ?? json['verse_id'] ?? json['verse'],
-    );
+    final verseNumber = _asInt(rawVerseNumber);
     final fallbackId = canonicalId(chapter, verseNumber);
 
     final originalScript = _asString(json['original_script'] ?? json['text']);
@@ -42,6 +43,7 @@ class Verse {
       id: _normalizeId(json['id'], fallbackId),
       chapter: chapter,
       verseNumber: verseNumber,
+      verseLabel: _normalizeVerseLabel(rawVerseNumber, verseNumber),
       originalScript: originalScript,
       transliteration: transliteration,
       translationEnglish: translationEnglish.isNotEmpty
@@ -62,6 +64,7 @@ class Verse {
     String? id,
     int? chapter,
     int? verseNumber,
+    String? verseLabel,
     String? originalScript,
     String? transliteration,
     String? translationEnglish,
@@ -73,6 +76,7 @@ class Verse {
       id: id ?? this.id,
       chapter: chapter ?? this.chapter,
       verseNumber: verseNumber ?? this.verseNumber,
+      verseLabel: verseLabel ?? this.verseLabel,
       originalScript: originalScript ?? this.originalScript,
       transliteration: transliteration ?? this.transliteration,
       translationEnglish: translationEnglish ?? this.translationEnglish,
@@ -88,6 +92,41 @@ class Verse {
     final chapterPart = safeChapter.toString().padLeft(2, '0');
     final versePart = safeVerse.toString().padLeft(2, '0');
     return 'BG_${chapterPart}_$versePart';
+  }
+
+  bool get isRecap {
+    final normalizedId = id.trim().toUpperCase();
+    final normalizedTranslation = translationEnglish.trim().toLowerCase();
+    return normalizedId.startsWith('RECAP_') ||
+        normalizedTranslation.startsWith('recap:') ||
+        normalizedTranslation.startsWith('recap ') ||
+        normalizedTranslation.startsWith('the end:');
+  }
+
+  bool get isSummary {
+    final normalizedTranslation = translationEnglish.trim().toLowerCase();
+    return verseNumber <= 0 ||
+        normalizedTranslation.contains('summary');
+  }
+
+  String get displayVerseLabel {
+    if (isRecap) {
+      return 'Recap';
+    }
+    if (isSummary) {
+      return 'Summary';
+    }
+    return verseLabel;
+  }
+
+  String get referenceLabel {
+    if (isRecap) {
+      return 'Chapter $chapter Recap';
+    }
+    if (isSummary) {
+      return 'Chapter $chapter Summary';
+    }
+    return 'Chapter $chapter, Verse $verseLabel';
   }
 
   static int _asInt(dynamic value) {
@@ -119,6 +158,14 @@ class Verse {
       return '';
     }
     return value.toString().trim();
+  }
+
+  static String _normalizeVerseLabel(dynamic value, int fallbackVerseNumber) {
+    final normalized = _asString(value);
+    if (normalized.isNotEmpty) {
+      return normalized;
+    }
+    return fallbackVerseNumber.toString();
   }
 
   static String _normalizeId(dynamic rawId, String fallbackId) {
