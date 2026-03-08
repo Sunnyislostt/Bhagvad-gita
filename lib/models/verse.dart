@@ -109,6 +109,8 @@ class Verse {
         normalizedTranslation.contains('summary');
   }
 
+  bool get countsTowardProgress => !isSummary && !isRecap;
+
   String get displayVerseLabel {
     if (isRecap) {
       return 'Recap';
@@ -127,6 +129,35 @@ class Verse {
       return 'Chapter $chapter Summary';
     }
     return 'Chapter $chapter, Verse $verseLabel';
+  }
+
+  static int compareByReadingOrder(Verse a, Verse b) {
+    final chapterCompare = a.chapter.compareTo(b.chapter);
+    if (chapterCompare != 0) {
+      return chapterCompare;
+    }
+
+    final sectionCompare = _sectionRank(a).compareTo(_sectionRank(b));
+    if (sectionCompare != 0) {
+      return sectionCompare;
+    }
+
+    final verseCompare = a.verseNumber.compareTo(b.verseNumber);
+    if (verseCompare != 0) {
+      return verseCompare;
+    }
+
+    return a.id.compareTo(b.id);
+  }
+
+  static int _sectionRank(Verse verse) {
+    if (verse.isRecap) {
+      return 2;
+    }
+    if (verse.isSummary) {
+      return 0;
+    }
+    return 1;
   }
 
   static int _asInt(dynamic value) {

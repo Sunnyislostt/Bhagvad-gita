@@ -239,7 +239,8 @@ class NotificationService {
   }
 
   Future<List<Verse>> _loadVerses() async {
-    return _verseRepository.loadVerses();
+    final verses = await _verseRepository.loadVerses();
+    return verses.where((verse) => verse.countsTowardProgress).toList();
   }
 }
 

@@ -13,7 +13,7 @@ class VerseRepository {
     if (verses.isEmpty) {
       return <Verse>[];
     }
-    verses.sort(_sortByChapterAndVerse);
+    verses.sort(Verse.compareByReadingOrder);
     debugPrint('VerseRepository: loaded dataset count=${verses.length}');
     return verses;
   }
@@ -70,13 +70,5 @@ class VerseRepository {
     }
 
     return const <dynamic>[];
-  }
-
-  static int _sortByChapterAndVerse(Verse a, Verse b) {
-    final chapterCompare = a.chapter.compareTo(b.chapter);
-    if (chapterCompare != 0) {
-      return chapterCompare;
-    }
-    return a.verseNumber.compareTo(b.verseNumber);
   }
 }

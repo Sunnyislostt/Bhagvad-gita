@@ -58,31 +58,34 @@ Bhagvad Gita App is a Flutter app with a feed-first resume flow:
 ## 5. Current Dataset State
 Source: `assets/data/verses.json`
 
-- Total entries: **715**
-- Non-summary verse rows: **696**
-- Summary/recap rows (`verse_number = 0`): **19**
+- Total entries: **726**
+- Chapter overview rows: **18**
+- Recap rows: **18**
 - Grouped/range verse rows (`verse_number = "x-y"`): **10**
 - Chapter coverage: **1 to 18**
 - Canonical Bhagavad Gita structure: **18 chapters** and **700 verses**
+- Current dataset covers all **700** canonical verses, plus overview and recap rows.
+- Overview and recap labels use canonical chapter naming consistently across all chapters.
+- Overview and recap body text has been editorially normalized to keep the summaries more neutral, less colloquial, and more internally consistent in tone.
 
 Per chapter:
-- Chapter 1: 49 entries (max verse 48)
-- Chapter 2: 74 entries (max verse 73)
-- Chapter 3: 45 entries (max verse 44)
-- Chapter 4: 43 entries (max verse 42)
-- Chapter 5: 30 entries (max verse 29)
-- Chapter 6: 48 entries (max verse 47)
-- Chapter 7: 25 entries (max verse 24)
-- Chapter 8: 29 entries (max verse 28)
-- Chapter 9: 36 entries (max verse 35)
-- Chapter 10: 43 entries (max verse 43)
-- Chapter 11: 55 entries (max verse 56)
-- Chapter 12: 20 entries (max verse 21)
-- Chapter 13: 35 entries (max verse 35)
-- Chapter 14: 28 entries (max verse 28)
-- Chapter 15: 21 entries (max verse 21)
-- Chapter 16: 26 entries (max verse 25)
-- Chapter 17: 29 entries (max verse 29)
+- Chapter 1: 49 entries (max verse 47)
+- Chapter 2: 74 entries (max verse 72)
+- Chapter 3: 45 entries (max verse 43)
+- Chapter 4: 44 entries (max verse 42)
+- Chapter 5: 31 entries (max verse 29)
+- Chapter 6: 49 entries (max verse 47)
+- Chapter 7: 32 entries (max verse 30)
+- Chapter 8: 30 entries (max verse 28)
+- Chapter 9: 36 entries (max verse 34)
+- Chapter 10: 43 entries (max verse 42)
+- Chapter 11: 55 entries (max verse 55)
+- Chapter 12: 20 entries (max verse 20)
+- Chapter 13: 35 entries (max verse 34)
+- Chapter 14: 28 entries (max verse 27)
+- Chapter 15: 21 entries (max verse 20)
+- Chapter 16: 26 entries (max verse 24)
+- Chapter 17: 29 entries (max verse 28)
 - Chapter 18: 79 entries (max verse 78)
 
 ## 6. Chapter Home Screen
@@ -103,6 +106,7 @@ Per chapter:
 - Vertical swipe: moves between verses (`PageView`)
 - Horizontal swipe on the feed screen: opens current verse details
 - Info button on card: opens the same details sheet
+- The light-theme details sheet also uses the app's warm sand/beige light-theme palette with reduced glow, border contrast, and card brightness for a more eye-soothing reading surface.
 - Swipe guidance hint text is shown only on the first verse card (`index == 0`)
 
 ### Overflow-safe card layout
@@ -117,6 +121,15 @@ Per chapter:
   - Dark: `assets/images/dark.jpeg`
   - Light: `assets/images/light.jpeg`
 - A theme-aware scrim plus dynamic chapter/verse color tint are layered on top for readability and visual continuity.
+- Active feed backgrounds are precached to reduce first-frame decode work during startup and theme changes.
+
+### Feed performance path
+- `FeedScreen` tracks the active page with a `ValueNotifier<int>` so normal verse swipes do not rebuild the entire screen tree.
+- The dynamic verse accent layer listens to the active index directly and updates independently from the rest of the page.
+- Main feed chrome (`language`, `menu`, `settings`, notification preview) uses translucent containers without live backdrop blur to avoid expensive per-frame sampling over moving content.
+- `PageView.builder` uses `allowImplicitScrolling: true` to keep adjacent verse pages ready for smoother swipes.
+- Background images render with low filter quality plus gapless playback to reduce visual hitching while preserving the full-screen look.
+- Verse ordering now uses type-aware sorting so chapter overview rows stay first, normal verses stay in canonical order, and recap rows stay at the end of each chapter.
 
 ### Reading progress and history
 - On page change, it persists:
@@ -124,7 +137,7 @@ Per chapter:
   - recent verse IDs
   - chapter progress
 - Chapter progress now tracks exact visited verse IDs per chapter, so read chips are based on actual visited verses (not inferred by highest verse number).
-- Summary/recap rows (`verse_number = 0`) are excluded from chapter and overall progress totals.
+- Chapter overview and recap rows use `verse_number = 0` and remain visible in the feed, but they are excluded from chapter and overall progress totals.
 - Range verse labels such as `4-5` are preserved in the UI even though ordering/progress still use the first numeric value.
 
 ### Search and jump
@@ -144,6 +157,11 @@ Per chapter:
 - Deep Dive
 - Word Meanings (if available)
 - English Translation
+
+### Verse card performance
+- `VerseCard` is wrapped in a `RepaintBoundary` to reduce unnecessary repaints across page transitions.
+- Long-verse font fitting is cached by verse/language/constraint combination, so repeated visits to the same card do not redo the full `TextPainter` search loop.
+- If text still does not fit at the minimum font size, the card falls back to scrolling instead of truncation.
 
 ## 8. Settings Screen
 Sections:
@@ -167,7 +185,7 @@ Navigation behavior:
   - 08:00 "Morning Verse"
   - 18:00 "Evening Verse"
 - Requests Android notification permission when enabling notifications
-- Uses repository-loaded verse list
+- Uses repository-loaded verse list filtered to progress-counting verses (excluding chapter overview and recap rows)
 - Notification taps open the exact verse from the payload without replacing the user's saved last-read position.
 
 ## 10. Widget Integration (Android)
@@ -207,6 +225,10 @@ flutter pub get
 flutter run
 ```
 
+Content note:
+- Keep overview and recap titles aligned with canonical chapter names.
+- Keep overview and recap body text neutral in tone, avoiding overly academic, colloquial, or tradition-specific claims stated as settled fact.
+
 ## 12. Verification Checklist
 After code/data changes:
 1. `flutter pub get`
@@ -229,6 +251,8 @@ Manual checks:
 - Summary/Recap chips fit correctly in the chapter/verse picker
 - No bottom `RenderFlex` overflow on small-height devices
 - Long verses remain readable without `...` truncation on the main card
+- Feed swipes remain smooth in `flutter run --profile` or release builds on a 60 Hz device
+- Feed remains stable on high-refresh devices (for example 90 Hz / 120 Hz) without obvious hitching during consecutive verse swipes
 - Morning and evening notifications are scheduled when enabled
 - Notification tap opens the exact verse without changing the saved last-read position
 - Widget fixed/random mode flows still work
@@ -307,3 +331,39 @@ Design guidelines:
 - Do not ask for unnecessary permissions early.
 - Request notification permission only when the notifications step is shown.
 - Do not force widget setup during onboarding.
+
+## 16. Future Monetization Idea: Feed Ads
+Requested future direction:
+- Add Google AdMob ads as full-page feed items inside the vertical verse scroll.
+- Ads should appear as standalone pages between verses, similar to short-video or news-feed apps, so the user can swipe once more to continue reading.
+- Do not use banner ads for this flow.
+- Do not interrupt reading with popup-style interstitials for this flow.
+
+Recommended technical direction:
+- Use `google_mobile_ads`.
+- Prefer `Native Ads` inserted into the feed data source rather than `InterstitialAd`.
+- Build a mixed feed list containing both verse items and ad items.
+- Render ad items as full-height pages inside the same `PageView` used by `FeedScreen`.
+- Insert ads at a controlled interval, for example every `8` to `12` verses.
+- Preload ads so feed scrolling remains smooth.
+
+Why native ads:
+- Interstitial ads are overlay-based and do not behave like normal feed pages.
+- Native ads can be embedded in the scrollable feed and styled to fit the app's layout more naturally.
+
+Important constraints:
+- Ads must still be clearly identifiable as ads and comply with AdMob native ad attribution requirements.
+- The ad page should not be disguised as a normal verse card.
+- Avoid showing the first ad too early in the session.
+- Keep the main reading experience primary; ad frequency should stay conservative.
+
+Likely implementation files:
+- `pubspec.yaml`
+- `lib/main.dart`
+- `lib/screens/feed_screen.dart`
+- `android/app/src/main/AndroidManifest.xml`
+
+Preferred rollout:
+1. Start with Android support first.
+2. Use AdMob test ad unit IDs during development.
+3. Validate swipe smoothness and readability before enabling production ads.

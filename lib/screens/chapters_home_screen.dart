@@ -47,7 +47,7 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
       grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
     }
     for (final entry in grouped.entries) {
-      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+      entry.value.sort(Verse.compareByReadingOrder);
     }
     return grouped;
   }
@@ -55,13 +55,13 @@ class _ChaptersHomeScreenState extends State<ChaptersHomeScreen> {
   Map<int, List<Verse>> get _progressVersesByChapter {
     final grouped = <int, List<Verse>>{};
     for (final verse in _verses) {
-      if (verse.verseNumber <= 0) {
+      if (!verse.countsTowardProgress) {
         continue;
       }
       grouped.putIfAbsent(verse.chapter, () => <Verse>[]).add(verse);
     }
     for (final entry in grouped.entries) {
-      entry.value.sort((a, b) => a.verseNumber.compareTo(b.verseNumber));
+      entry.value.sort(Verse.compareByReadingOrder);
     }
     return grouped;
   }
